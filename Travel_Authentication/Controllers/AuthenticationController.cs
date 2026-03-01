@@ -89,19 +89,23 @@ namespace Travel_Authentication.Controllers
                 await _userManager.AddToRoleAsync(user, model.Role);
 
                 // Admin: issue token immediately
-                if (model.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                //if (model.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                //    return await HandleAdminRegistration(user, model.Role);
+                if (model.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                      model.Role.Equals("POS", StringComparison.OrdinalIgnoreCase))
+                {
                     return await HandleAdminRegistration(user, model.Role);
-
+                }
                 // Normal user → Send OTP
                 return await HandleUnverifiedEmailLogin(user, model.lang, _localizer["SuccessRegister"]);
             }
             catch (Exception ex)
             {
 
-                string filePath = "C:\\inetpub\\wwwroot\\vhost\\expand-horizons.de\\Auth\\Logs\\error.txt";
+               // string filePath = "C:\\inetpub\\wwwroot\\vhost\\expand-horizons.de\\Auth\\Logs\\error.txt";
                 // Ideally log ex
-                var json = ExportException(ex);
-                System.IO.File.WriteAllText(filePath, json);
+                //var json = ExportException(ex);
+                //System.IO.File.WriteAllText(filePath, json);
 
 
                 return StatusCode(StatusCodes.Status500InternalServerError,
@@ -146,9 +150,13 @@ namespace Travel_Authentication.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 var role = roles.FirstOrDefault();
 
-                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                //if (await _userManager.IsInRoleAsync(user, "Admin"))
+                //    return await HandleAdminRegistration(user, role);
+                if (await _userManager.IsInRoleAsync(user, "Admin") ||
+                    await _userManager.IsInRoleAsync(user, "POS"))
+                {
                     return await HandleAdminRegistration(user, role);
-
+                }
                 // Not confirmed → send OTP
                 if (!user.EmailConfirmed)
                     return await HandleUnverifiedEmailLogin(user, model.lang, $"{_localizer["OTPMSG"]} {user.Email}");
@@ -374,35 +382,85 @@ namespace Travel_Authentication.Controllers
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
+      
+        //new generate JWT FUNC depend on role
         private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
         {
-            DateTime timestamp = DateTime.Now;
-            string fullName = user.FirstName + " " + user.LastName;
-            // Get User roles and add them to claims
+            var timestamp = DateTime.UtcNow;
+            var fullName = $"{user.FirstName} {user.LastName}";
+
+            // Get user roles
             var roles = await _userManager.GetRolesAsync(user);
 
+            // Get expiry minutes based on role
+            var expirationTime = timestamp;
+            if (roles.Contains("POS"))
+            {
+                 expirationTime = timestamp.AddDays(7);
+            }
+            else
+            {
+                 expirationTime = timestamp.AddMinutes(15);
+            }
+                
+
             var authClaims = new List<Claim>
-                    {
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new Claim(ClaimTypes.Name, user.UserName),
-                        new Claim("ClientId", user.Id.ToString()),
-                        new Claim("FullName", fullName),
-                        new Claim("Email", user.Email),
-                        //new Claim("ClientId", user.Id.ToString()),
-                        new Claim("TimeStamp",timestamp.ToString()),
-                        new Claim("ActivtationTokenExpiredAt",timestamp.AddMinutes(5).ToString()),
-                    };
+    {
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.Name, user.UserName ?? string.Empty),
+        new Claim("ClientId", user.Id.ToString()),
+        new Claim("FullName", fullName),
+        new Claim("Email", user.Email ?? string.Empty),
+        new Claim("TimeStamp", timestamp.ToString()),
+        new Claim("ActivationTokenExpiredAt", expirationTime.ToString()),
+       
+    };
+
             AddRolesToClaims(authClaims, roles);
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: authClaims,
-                expires: DateTime.Now.AddMinutes(5),
+                expires: expirationTime,
                 signingCredentials: creds);
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        //private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
+        //{
+        //    DateTime timestamp = DateTime.Now;
+        //    string fullName = user.FirstName + " " + user.LastName;
+        //    // Get User roles and add them to claims
+        //    var roles = await _userManager.GetRolesAsync(user);
+
+        //    var authClaims = new List<Claim>
+        //            {
+        //                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        //                new Claim(ClaimTypes.Name, user.UserName),
+        //                new Claim("ClientId", user.Id.ToString()),
+        //                new Claim("FullName", fullName),
+        //                new Claim("Email", user.Email),
+        //                //new Claim("ClientId", user.Id.ToString()),
+        //                new Claim("TimeStamp",timestamp.ToString()),
+        //                new Claim("ActivtationTokenExpiredAt",timestamp.AddMinutes(5).ToString()),
+        //            };
+        //    AddRolesToClaims(authClaims, roles);
+        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        //    var token = new JwtSecurityToken(
+        //        issuer: _configuration["Jwt:Issuer"],
+        //        audience: _configuration["Jwt:Audience"],
+        //        claims: authClaims,
+        //        expires: DateTime.Now.AddMinutes(5),
+        //        signingCredentials: creds);
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
         private void AddRolesToClaims(List<Claim> claims, IEnumerable<string> roles)
         {
             foreach (var role in roles)

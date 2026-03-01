@@ -27,6 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Mails_App\Mails_App.csproj" />
+    <ProjectReference Include="..\..\..\..\Mails_App\Mails_App\Mails_App.csproj" />
   </ItemGroup>
 </Project>
