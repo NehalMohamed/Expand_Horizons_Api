@@ -1675,11 +1675,11 @@ namespace ITravelApp.Data
                                  //total_extra_price = FAC!.pricing_type == 1 ? (FAC!.extra_price  * BOOK.extra_count)  : FAC!.extra_price  
                              };
 
-                return result!=null ? [.. result] : [];
+                return result !=null ? result.ToList() : new List<BookingExtraCast>();
             }
             catch (Exception ex)
             {
-                return [];
+                return new List<BookingExtraCast>();
             }
         }
         public async Task<List<BookingSummary>> GetMyBooking(LangReq req, string client_id)

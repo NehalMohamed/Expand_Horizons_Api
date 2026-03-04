@@ -114,7 +114,7 @@ namespace ITravel_App.Controllers
             string? clientId = _loginUserData.client_id;
             string? client_email = _loginUserData.client_email;
             string? FullName = _loginUserData.FullName;
-            req.client_id = clientId;
+            //req.client_id = clientId;
             string fileName = "BookingClientEmail_" + req.lang_code.ToLower() + ".cshtml";
             var templatePath = Path.Combine("/Views/Email" + "/", fileName);
             BookingWithTripDetailsAll model = await _clientService.ConfirmBooking(req);
@@ -145,6 +145,47 @@ namespace ITravel_App.Controllers
                 //return BadRequest(model);
             }
             
+        }
+
+        [HttpPost("ConfirmBookingPos")]
+        public async Task<IActionResult> ConfirmBookingPos(ConfirmBookingReq req)
+        {
+            string? clientId = _loginUserData.client_id;
+            string? client_email = req.ClientEmail;
+            //string? FullName = _loginUserData.FullName;
+            //req.client_id = clientId;
+            string fileName = "BookingClientEmail_" + req.lang_code.ToLower() + ".cshtml";
+            var templatePath = Path.Combine("/Views/Email" + "/", fileName);
+            BookingWithTripDetailsAll model = await _clientService.ConfirmBooking(req);
+            if (model != null)
+            {
+                model.client_name = client_email;
+                var msg = await _viewService.RenderViewToStringAsync(templatePath, model, ControllerContext);
+                //generate pdf from chtml 
+
+                //byte[] pdf = await _pdfService.GeneratePdfFromHtmlAsync(msg);
+                var pdfBytes = await _pdfService.GenerateBookingPdf(model);
+                MailData Mail_Data = new MailData
+                {
+                    EmailToId = client_email,
+                    EmailToName = client_email,
+                    EmailSubject = UtilsCls.GetMailSubjectByLang(req.lang_code, 3),
+                    EmailBody = msg,
+                    withAttatch = true,
+                    pdfBytes = pdfBytes,
+                    ccEmails = new List<string> { "booking@expand-horizons.de" },
+                    FileName = req.lang_code.ToLower() == "en" ? $"BookingConfirmation.pdf" : $"Buchungsbestätigung.pdf"
+
+                };
+                return Ok(Mail_Service.SendMail(Mail_Data));
+            }
+            else
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    model);
+                //return BadRequest(model);
+            }
+
         }
         [HttpPost("GetMyBooking")]
         public async Task<IActionResult> GetMyBooking(LangReq req)
