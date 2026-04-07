@@ -362,8 +362,134 @@ namespace Travel_Authentication.Controllers
             //return Ok(new { AccessToken = newAccessToken });
         }
 
-        #region "helper methods"
+        [HttpPost("GetRoles")]
+        public IActionResult GetRoles()
+        {
+            try
+            {
+                var roles = _roleManager.Roles
+                .Select(r => new { r.Id, r.Name })
+                .ToList();
+                return Ok(roles);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                     BuildErrorResponse(e.Message));
+            }
+        }
 
+        [HttpPost("GetUsers")]
+        public IActionResult GetUsers()
+        {
+            try
+            {
+
+                var users = _userManager.Users.ToList().Select(c => new UsersWithRoles
+                {
+                    completeprofile = c.completeprofile,
+                    EmailConfirmed = c.EmailConfirmed,
+                    Email = c.Email,
+                    Roles = GetUserRoles(c).Result,
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                    Id = c.Id,
+                    PhoneNumber = c.PhoneNumber,
+                    UserName = c.UserName,
+                    GoogleId = c.GoogleId,
+
+
+                }).ToList();
+                return Ok(new UsersCls { success = true, users = users });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                     BuildErrorResponse(e.Message));
+            }
+        }
+
+        [HttpPost("GetUsersGrp")]
+        public async Task<IActionResult> GetUsersGrp()
+        {
+            try
+            {
+                var roles = _roleManager.Roles.ToList();
+                var result = new List<UsersWithRolesGrp>();
+                foreach (var role in roles)
+                {
+                    UsersWithRolesGrp UserRole = new UsersWithRolesGrp();
+                    var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name);
+                    UserRole.Roles = role.Name;
+                    UserRole.users = usersInRole.ToList();
+                    UserRole.count = usersInRole.Count();
+                    result.Add(UserRole);
+                }
+                return Ok(new UsersResponse { success = true, result = result });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    BuildErrorResponse(e.Message));
+            }
+        }
+
+
+
+        // DELETE api/users/{id}
+        //[HttpDelete("{id}")]
+        [HttpPost("DeleteUser")]
+        public async Task<IActionResult> DeleteUser([FromQuery] string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return Unauthorized(BuildErrorResponse(_localizer["UserNotFound"]));
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(new ResponseCls { errors = string.Join(", ", result.Errors.Select(e => e.Description)), isSuccessed = false, message = "error" });
+
+            return Ok(new ResponseCls { message = "User deleted successfully.", isSuccessed = true });
+        }
+        [HttpPost("CreateUserByAdmin")]
+        public async Task<IActionResult> CreateUserByAdmin([FromBody] RegisterModel model)
+        {
+            try
+            {
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, FirstName = model.FirstName, LastName = model.LastName, TwoFactorEnabled = true, EmailConfirmed = true };
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    //add rule to user
+                    await _userManager.AddToRoleAsync(user, model.Role);
+                    await _signInManager.SignOutAsync();
+                    await _signInManager.PasswordSignInAsync(user, model.Password, false, true);
+                    return Ok(new ResponseCls { isSuccessed = true, message = "User Created successfully.", errors = null });
+                }
+                else
+                {
+                    List<IdentityError> errorList = result.Errors.ToList();
+                    var errors = string.Join(", ", errorList.Select(e => e.Description));
+                    return BadRequest(new ResponseCls { isSuccessed = false, message = errors, errors = errors });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    BuildErrorResponse(ex.Message));
+            }
+
+
+        }
+        #region "helper methods"
+        private async Task<string> GetUserRoles(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return string.Join(",", roles.ToArray());
+        }
         private async Task<IdentityResult> ChangeUserPasswordAsync(ApplicationUser user, PasswordCls model)
         {
             var hasPassword = await _userManager.HasPasswordAsync(user);

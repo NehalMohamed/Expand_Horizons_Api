@@ -204,6 +204,18 @@ namespace ITravel_App.Controllers
 
 
         #region "Profile"
+        [HttpPost("GetClientProfileImageByAdmin")]
+        public async Task<IActionResult> GetClientProfileImageByAdmin([FromQuery] string clientId)
+        {
+
+            return Ok(await _clientService.GetProfileImage(clientId));
+        }
+        [HttpPost("GetClientProfileByAdmin")]
+        public async Task<IActionResult> GetClientProfiles([FromQuery] string clientId)
+        {
+
+            return Ok(await _clientService.GetClientProfiles(clientId));
+        }
         [HttpPost("GetClientProfiles")]
         public async Task<IActionResult> GetClientProfiles()
         {
