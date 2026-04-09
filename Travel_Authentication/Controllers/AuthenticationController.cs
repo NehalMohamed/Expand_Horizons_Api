@@ -17,6 +17,7 @@ using System.Text.Json;
 using Travel_Authentication.Models;
 using Travel_Authentication.Services;
 using static System.Net.WebRequestMethods;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Travel_Authentication.Controllers
 {
@@ -144,6 +145,9 @@ namespace Travel_Authentication.Controllers
 
             try
             {
+                if (!string.IsNullOrWhiteSpace(user.GoogleId) && user.GoogleId == "1")
+                   return Unauthorized(BuildRedirectLoginError(_localizer["GoogleAccountRedirect"]));
+                
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
                     return Unauthorized(BuildErrorResponse(_localizer["MailPasswordIncorrect"]));
 
@@ -665,12 +669,21 @@ namespace Travel_Authentication.Controllers
                 message = message
             };
         }
+        private ResponseCls BuildRedirectLoginError(string message)
+        {
+            return new ResponseCls
+            {
+                isSuccessed = false,
+                message = message,
+                isGoogleAcc = true
+            };
+        }
         private async Task<IActionResult> HandleUnverifiedEmailLogin(ApplicationUser user, string lang,string message)
         {
             var otp = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
             var mailData = Utils.GetOTPMailData(lang, $"{user.FirstName} {user.LastName}", otp, user.Email);
-            Mail_Service.SendMail(mailData);
-
+            var mailResult = Mail_Service.SendMail(mailData,_logger);
+            _logger.LogWarning($"Send Mail Result : {mailResult}");
             return Ok(new ResponseCls
             {
                 isSuccessed = true,

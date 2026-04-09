@@ -136,7 +136,7 @@ namespace ITravel_App.Controllers
                     FileName = req.lang_code.ToLower() == "en" ? $"BookingConfirmation.pdf" : $"Buchungsbestätigung.pdf"
 
                 };
-                return Ok(Mail_Service.SendMail(Mail_Data));
+                return Ok(Mail_Service.SendMail(Mail_Data,null));
             }
             else
             {
@@ -177,7 +177,7 @@ namespace ITravel_App.Controllers
                     FileName = req.lang_code.ToLower() == "en" ? $"BookingConfirmation.pdf" : $"Buchungsbestätigung.pdf"
 
                 };
-                return Ok(Mail_Service.SendMail(Mail_Data));
+                return Ok(Mail_Service.SendMail(Mail_Data,null));
             }
             else
             {

@@ -6,5 +6,6 @@
         public string? errors { get; set; }
         public string? message { get; set; }
         public User? user { get; set; }
+        public bool isGoogleAcc {  get; set; }
     }
 }

@@ -17,9 +17,9 @@ namespace ITravel_App.Services
             return _mailSettingDao.ContactMail(Mail_Data, sender);
         }
 
-        public bool SendMail(MailData Mail_Data)
+        public bool SendMail(MailData Mail_Data,ILogger _logger)
         {
-            return _mailSettingDao.SendMail(Mail_Data);
+            return _mailSettingDao.SendMail(Mail_Data, _logger);
         }
     }
 }

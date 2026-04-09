@@ -6,6 +6,7 @@ using MimeKit;
 using System.Net;
 //using System.Net.Mail;
 using System.Text;
+using Travel_Authentication.Controllers;
 using Travel_Authentication.Models;
 
 namespace Travel_Authentication.Services
@@ -19,9 +20,9 @@ namespace Travel_Authentication.Services
             _mailSettingDao = mailSettingDao;
         }
 
-        public bool SendMail(MailData Mail_Data)
+        public bool SendMail(MailData Mail_Data, ILogger _logger)
         {
-            return _mailSettingDao.SendMail(Mail_Data);
+            return _mailSettingDao.SendMail(Mail_Data,_logger);
         }
 
         //public bool SendOTPMail(MailData Mail_Data)

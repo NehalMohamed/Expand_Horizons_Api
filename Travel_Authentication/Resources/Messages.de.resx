@@ -144,4 +144,7 @@
   <data name="UpdateSuccess" xml:space="preserve">
     <value>Erfolgreich aktualisiert</value>
   </data>
+  <data name="GoogleAccountRedirect" xml:space="preserve">
+    <value>Es handelt sich um Ihr Google-Konto. Bitte melden Sie sich mit Gmail an.</value>
+  </data>
 </root>

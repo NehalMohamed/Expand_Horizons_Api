@@ -144,4 +144,8 @@
   <data name="UpdateSuccess" xml:space="preserve">
     <value>Updated Successfully</value>
   </data>
+  <data name="GoogleAccountRedirect" xml:space="preserve">
+    <value>هذا حساب جوجل، يرجى تسجيل الدخول باستخدام جيميل
+</value>
+  </data>
 </root>
