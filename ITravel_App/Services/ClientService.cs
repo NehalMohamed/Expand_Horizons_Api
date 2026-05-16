@@ -7,11 +7,15 @@ using ITravelApp.Data.Models.destination;
 using ITravelApp.Data.Models.global;
 using ITravelApp.Data.Models.profile;
 using ITravelApp.Data.Models.trips;
+using Microsoft.EntityFrameworkCore.Migrations;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ITravel_App.Services
 {
+
+   
+    
     public class ClientService : IClientService
     {
         private ClientDAO _clientDAO;

@@ -1150,6 +1150,11 @@ namespace ITravelApp.Data
                         trip_return_datestr = result.trip_return_datestr,
                         child_ages = result.child_ages,
                         pricing_type = result.pricing_type,
+                        drop_address=result.drop_address,
+                        drop_lat=result.drop_lat,
+                        drop_long=result.drop_long,
+                        pickup_lat=result.pickup_lat,
+                        pickup_long=result.pickup_long,
                         extras = GetExtraAssignedToBooking(result.booking_id, req.lang_code, false).ToList(),
                         extras_obligatory = GetExtraAssignedToBooking(result.booking_id, req.lang_code, true).ToList()
                     };
@@ -1227,6 +1232,11 @@ namespace ITravelApp.Data
                         trip_type = result.trip_type,
                         is_two_way = result.is_two_way,
                         trip_return_datestr = result.trip_return_datestr,
+                        drop_address = result.drop_address,
+                        drop_lat = result.drop_lat,
+                        drop_long = result.drop_long,
+                        pickup_lat = result.pickup_lat,
+                        pickup_long = result.pickup_long,
                         extras = GetExtraAssignedToBooking(result.booking_id, req.lang_code, false),
                         extras_obligatory = GetExtraAssignedToBooking(result.booking_id, req.lang_code, true),
                         pickups = GetPickupsForTrip(new PickupsReq { lang_code = req.lang_code, trip_id = result.trip_id, trip_type = result.trip_type }).Result
@@ -1447,7 +1457,15 @@ namespace ITravelApp.Data
                     is_two_way = row.is_two_way,
                     child_ages = row.childAgesArr != null ? string.Join(",", row.childAgesArr) : row.child_ages,
                     pricing_type = row.pricing_type,
-                    trip_return_date = row.trip_return_dateStr != null ? DateTime.ParseExact(row.trip_return_dateStr, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) : null
+                    pickup_long=row.pickup_long,
+                    pickup_lat=row.pickup_lat,
+                    drop_long=row.drop_long,
+                    drop_address=row.drop_address,
+                    drop_lat=row.drop_lat,
+                    trip_return_date = row.trip_return_dateStr != null ? DateTime.ParseExact(row.trip_return_dateStr, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) : null,
+                    route_distance=row.route_distance,
+                    route_price=row.route_price,
+                    vehicle_id=row.vehicle_id
                 };
                 // booking.total_price = CalculateBookingPrice(booking.trip_id, booking.total_pax, booking.child_num, row.currency_code);
                 if (row.id == 0)
@@ -1730,6 +1748,7 @@ namespace ITravelApp.Data
                     trip_return_datestr = result.trip_return_datestr,
                     pricing_type = result.pricing_type,
                     child_ages = result.child_ages,
+
                     extras = GetExtraAssignedToBooking(result.booking_id, req.lang_code, false).ToList(),
                     extras_obligatory = GetExtraAssignedToBooking(result.booking_id, req.lang_code, true).ToList()
                 }).ToList();

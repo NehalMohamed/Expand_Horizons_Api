@@ -96,7 +96,7 @@ public class BookingPdfDocument : IDocument
                 });
 
                 // FOOTER
-                col.Item().PaddingTop(20).Text($"{L["Help"]} Info@expandhorizen.com or +2 0000000000")
+                col.Item().PaddingTop(20).Text($"{L["Help"]} Info@expandhorizen.com or +2  01034403755")
                     .FontSize(11).FontColor("#555");
             });
         });

@@ -54,6 +54,15 @@ namespace ITravelApp.Data.Models.Bookings
         public string? booking_datestr { get; set; }
         public bool? is_two_way { get; set; }
         public string? trip_return_datestr { get; set; }
+        public string? drop_address { get; set; }
+
+        public string? drop_lat { get; set; }
+
+        public string? drop_long { get; set; }
+
+        public string? pickup_lat { get; set; }
+
+        public string? pickup_long { get; set; }
         public List<TripsPickupResponse> pickups { get; set; }
         public List<BookingExtraCast>? extras { get; set; }
         public List<BookingExtraCast>? extras_obligatory { get; set; }

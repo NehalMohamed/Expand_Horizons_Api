@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using ITravelApp.Data.Entities;
+using ITravel_App.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITravelApp.Data.Data;
+namespace ITravel_App.Data;
 
 public partial class horizon_client_dbContext : DbContext
 {
@@ -516,7 +516,6 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.trip_code).HasMaxLength(20);
             entity.Property(e => e.trip_date).HasColumnType("timestamp without time zone");
             entity.Property(e => e.trip_return_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.vehicle_id).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<trips_wishlist>(entity =>

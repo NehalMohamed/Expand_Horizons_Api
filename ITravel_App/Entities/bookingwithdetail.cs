@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ITravelApp.Data.Entities;
+namespace ITravel_App.Entities;
 
 public partial class bookingwithdetail
 {
@@ -96,6 +96,4 @@ public partial class bookingwithdetail
     public decimal? route_price { get; set; }
 
     public decimal? route_distance { get; set; }
-
-    public int? vehicle_id { get; set; }
 }
