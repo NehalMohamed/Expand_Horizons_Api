@@ -23,7 +23,8 @@
                 ["Help"] = "Need help? Contact us at",
                 ["Nationality"]= "Nationality",
                 ["ReturnDate"] = "Return Date",
-                ["Extra"] = "Extras"
+                ["Extra"] = "Extras",
+                ["Drop"] = "Drop Address"
             },
             ["de"] = new Dictionary<string, string>
             {
@@ -44,8 +45,31 @@
                 ["Help"] = "Brauchen Sie Hilfe? Kontaktieren Sie uns unter",
                 ["Nationality"] = "Nationalität",
                 ["ReturnDate"] = "Rückflugdatum",
-                ["Extra"] = "Extras"
-            }
+                ["Extra"] = "Extras",
+                ["Drop"] = "Drop-Adresse"
+            },
+            ["ru"] = new Dictionary<string, string>
+            {
+                ["Title"] = "ПОДТВЕРЖДЕНИЕ БРОНИРОВАНИЯ",
+                ["Greeting"] = "Здравствуйте",
+                ["Confirmed"] = "Ваша поездка подтверждена",
+                ["Trip"] = "Поездка",
+                ["BookingRef"] = "Номер бронирования",
+                ["Date"] = "Дата",
+                ["Guests"] = "Гости",
+                ["Pickup"] = "Место встречи",
+                ["Payment"] = "Оплата",
+                ["Itinerary"] = "Маршрут",
+                ["PriceSummary"] = "Сводка стоимости",
+                ["TripPrice"] = "Стоимость поездки",
+                ["Discount"] = "Скидка",
+                ["Total"] = "Итого",
+                ["Help"] = "Нужна помощь? Свяжитесь с нами:",
+                ["Nationality"] = "Национальность",
+                ["ReturnDate"] = "Дата возвращения",
+                ["Extra"] = "Дополнительно",
+                ["Drop"] = "Адрес высадки"
+            },
         };
     }
 

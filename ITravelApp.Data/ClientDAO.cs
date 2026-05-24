@@ -1254,6 +1254,68 @@ namespace ITravelApp.Data
             }
 
         }
+
+        public async Task<BookingWithTripDetailsAll> ConfirmBookingPOS(ConfirmBookingReq req)
+        {
+
+            try
+            {
+                trips_booking booking = await _db.trips_bookings.Where(wr => wr.id == req.booking_id).SingleOrDefaultAsync();
+                if (booking != null)
+                {
+                    booking.booking_status = 2;
+                    _db.trips_bookings.Update(booking);
+                    _db.SaveChanges();
+                   
+                    return new BookingWithTripDetailsAll
+                    {
+                        booking_code = booking.booking_code,
+                        booking_datestr = booking.booking_date?.ToString("YYYY-MM-DD"),
+                        booking_id = booking.id,
+                        child_num = booking.child_num,
+                        client_email = booking.client_email,
+                        client_id = booking.client_id,
+                        client_nationality = booking.client_nationality,
+                        client_phone = booking.client_phone,
+                        currency_code = booking.currency_code,
+                        gift_code = booking.gift_code,
+                        infant_num = booking.infant_num,
+                        lang_code = req.lang_code,
+                        pickup_address = booking.pickup_address,
+                        pickup_time = booking.pickup_time,
+                       // review_rate = booking.review_rate,
+                        total_pax = booking.total_pax,
+                        total_price = booking.total_price,
+                        trip_code = booking.trip_code,
+                        trip_datestr = booking.trip_date?.ToString("YYYY-MM-DD"),
+                        trip_name = booking.vehicle_id == 1 ?  "Standard Car" : "Luxury Car",
+                        client_name = booking.client_name,
+                        trip_id = booking.trip_id,
+                        trip_type = booking.trip_type,
+                        is_two_way = booking.is_two_way,
+                        trip_return_datestr = booking.trip_return_date?.ToString("YYYY-MM-DD"),
+                        drop_address = booking.drop_address,
+                        drop_lat = booking.drop_lat,
+                        drop_long = booking.drop_long,
+                        pickup_lat = booking.pickup_lat,
+                        pickup_long = booking.pickup_long,
+                        //extras = GetExtraAssignedToBooking(result.booking_id, req.lang_code, false),
+                        //extras_obligatory = GetExtraAssignedToBooking(result.booking_id, req.lang_code, true),
+                        //pickups = GetPickupsForTrip(new PickupsReq { lang_code = req.lang_code, trip_id = result.trip_id, trip_type = result.trip_type }).Result
+
+
+                    };
+                    //send mail to client && horizon reservation team
+
+                }
+                return new BookingWithTripDetailsAll();
+            }
+            catch (Exception ex)
+            {
+                return new BookingWithTripDetailsAll();
+            }
+
+        }
         //public ResponseCls CalculateBookingPrice(long? booking_id , long? trip_id , int? adult_num, int? child_num,string currency,decimal extras_price)
 
         public BookingPrice CalculateBookingPrice(CalculateBookingPriceReq req)

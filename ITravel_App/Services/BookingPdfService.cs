@@ -248,6 +248,100 @@ namespace ITravel_App.Services
             }
         }
 
+        public async Task<byte[]> GenerateBookingPdfPOS(BookingWithTripDetailsAll _model)
+        {
+            Dictionary<string, string> L = Labels.Texts[_model.lang_code];
+            var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logo.png");
+            var vehicleName = _model.vehicle_id == 1 ? "Limousine" : "Shuttle Bus";
+            try
+            {
+                return await Task.Run(() =>
+                {
+                    var document = Document.Create(container =>
+                    {
+                        container.Page(page =>
+                        {
+                            page.Margin(20);
+                            page.Content().Column(col =>
+                            {
+                                // HEADER
+                                col.Item().PaddingBottom(20).BorderBottom(1).BorderColor("#e5e7eb").Row(row =>
+                                {
+                                    row.RelativeItem().Height(40).Image(logoPath);
+                                    row.RelativeItem().AlignRight().Column(c =>
+                                    {
+                                        c.Item().Text(L["Title"]).FontSize(15).FontColor("#5599cb");
+                                        c.Item().Text($"{L["Confirmed"]}!").FontSize(18).Bold();
+                                    });
+                                });
+
+                                // GREETING
+                                col.Item().PaddingVertical(20).Text($"{L["Greeting"]} {_model.client_name},")
+                                    .FontSize(16);
+
+                                col.Item().Text($"Thank you for choosing Expand-horizon. " +
+                                                $"Your booking {_model.booking_code} for {vehicleName} is confirmed.")
+                                    .FontSize(13);
+
+                                // BOOKING DETAILS
+                                col.Item().PaddingTop(20).Border(1).BorderColor("#e5e7eb").CornerRadius(8)
+                                    .Table(table =>
+                                    {
+                                        table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.RelativeColumn(); });
+                                        // table.Cell().Padding(8).Text($"{L["Trip"]}\n{_model.trip_name}");
+                                        table.Cell().Padding(8).Text($"{L["Trip"]}\n{vehicleName}");
+                                        table.Cell().Padding(8).AlignRight().Text($"{L["BookingRef"]}\n{_model.booking_code}");
+                                        table.Cell().Padding(8).Text($"{L["Date"]}\n{_model.trip_datestr}");
+                                        table.Cell().Padding(8).AlignRight()
+                                            .Text($"{L["Guests"]}\n{_model.total_pax} Adults - {_model.child_num} Children");
+
+                                        if (_model.is_two_way == true)
+                                        {
+                                            table.Cell().Padding(8).Text($"{L["ReturnDate"]}\n{_model.trip_return_datestr}");
+                                            table.Cell().Padding(8).AlignRight().Text("\n");
+                                        }
+                                        table.Cell().Padding(8)
+                                         .Text($"{L["Pickup"]}\n{(string.IsNullOrWhiteSpace(_model.pickup_address) ? "N/A" : _model.pickup_address)}");
+                                        //table.Cell().Padding(8).Text($"{L["Pickup"]}\n{_model.pickup_address}");
+                                        table.Cell().Padding(8).AlignRight().Text($"{L["Nationality"]}\n{_model.client_nationality}");
+
+                                        table.Cell().Padding(8).Text($"{L["Drop"]}\n {_model.drop_address} ");
+                                    });
+
+                               
+                                // PRICE SUMMARY
+                                col.Item().PaddingVertical(20).Text(L["PriceSummary"]).FontSize(16).Bold();
+                                col.Item().Border(1).BorderColor("#e5e7eb").CornerRadius(8).Table(table =>
+                                {
+                                    table.ColumnsDefinition(cols => { cols.RelativeColumn(); cols.ConstantColumn(100); });
+
+                                    table.Cell().Padding(10).Text(L["TripPrice"]);
+                                    table.Cell().AlignRight().Padding(10).Text($"{_model.total_price} {_model.currency_code}");
+
+                                    table.Cell().Padding(10).Text(L["Discount"]);
+                                    table.Cell().AlignRight().Padding(10).Text($"{0} {_model.currency_code}").FontColor("#5599cb");
+
+                                    table.Cell().BorderTop(1).BorderColor("#e5e7eb").Padding(10).Text(L["Total"]).Bold();
+                                    table.Cell().BorderTop(1).BorderColor("#e5e7eb").AlignRight().Padding(10)
+                                        .Text($"{_model.total_price - 0} {_model.currency_code}").Bold();
+                                });
+
+                                // FOOTER
+                                col.Item().PaddingTop(20).Text($"{L["Help"]} Info@expand-horizons.de or +2 01034403755")
+                                    .FontSize(11).FontColor("#555");
+                            });
+                        });
+                    });
+
+                    return document.GeneratePdf();
+                });
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
 
     }
 }

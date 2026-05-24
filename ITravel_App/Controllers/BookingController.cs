@@ -152,11 +152,12 @@ namespace ITravel_App.Controllers
         {
             string? clientId = _loginUserData.client_id;
             string? client_email = req.ClientEmail;
+           // string? client_email = "ranaelsherif91@gmail.com";
             //string? FullName = _loginUserData.FullName;
             //req.client_id = clientId;
-            string fileName = "BookingClientEmail_" + req.lang_code.ToLower() + ".cshtml";
+            string fileName = "BookingClientEmailPOS_" + req.lang_code.ToLower() + ".cshtml";
             var templatePath = Path.Combine("/Views/Email" + "/", fileName);
-            BookingWithTripDetailsAll model = await _clientService.ConfirmBooking(req);
+            BookingWithTripDetailsAll model = await _clientService.ConfirmBookingPOS(req);
             if (model != null)
             {
                 model.client_name = client_email;
@@ -164,7 +165,7 @@ namespace ITravel_App.Controllers
                 //generate pdf from chtml 
 
                 //byte[] pdf = await _pdfService.GeneratePdfFromHtmlAsync(msg);
-                var pdfBytes = await _pdfService.GenerateBookingPdf(model);
+                var pdfBytes = await _pdfService.GenerateBookingPdfPOS(model);
                 MailData Mail_Data = new MailData
                 {
                     EmailToId = client_email,
@@ -174,7 +175,7 @@ namespace ITravel_App.Controllers
                     withAttatch = true,
                     pdfBytes = pdfBytes,
                     ccEmails = new List<string> { "booking@expand-horizons.de" },
-                    FileName = req.lang_code.ToLower() == "en" ? $"BookingConfirmation.pdf" : $"Buchungsbestätigung.pdf"
+                    FileName = req.lang_code.ToLower() == "en" ? $"BookingConfirmation.pdf" : (req.lang_code.ToLower() == "de" ? $"Buchungsbestätigung.pdf" : $"Подтверждение_бронирования.pdf")
 
                 };
                 return Ok(Mail_Service.SendMail(Mail_Data,null));

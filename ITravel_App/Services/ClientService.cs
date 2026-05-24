@@ -51,6 +51,11 @@ namespace ITravel_App.Services
             return await _clientDAO.ConfirmBooking(req);
         }
 
+        public async Task<BookingWithTripDetailsAll> ConfirmBookingPOS(ConfirmBookingReq req)
+        {
+            return await _clientDAO.ConfirmBookingPOS(req);
+        }
+
         public Task<BookingSummary> GetBookingWithDetails(BookingReq req)
         {
             return _clientDAO.GetBookingWithDetails(req);

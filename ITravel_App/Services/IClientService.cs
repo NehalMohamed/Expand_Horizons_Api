@@ -42,6 +42,8 @@ namespace ITravel_App.Services
         public BookingPrice CalculateBookingPrice(CalculateBookingPriceReq req);
         public Task<BookingSummary> GetBookingWithDetails(BookingReq req);
         public Task<BookingWithTripDetailsAll> ConfirmBooking(ConfirmBookingReq req);
+        public Task<BookingWithTripDetailsAll> ConfirmBookingPOS(ConfirmBookingReq req);
+        
         public Task<ResponseCls> CancelBooking(long? booking_id, string? client_id);
         #endregion
 
