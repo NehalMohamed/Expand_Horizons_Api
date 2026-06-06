@@ -1270,7 +1270,7 @@ namespace ITravelApp.Data
                     return new BookingWithTripDetailsAll
                     {
                         booking_code = booking.booking_code,
-                        booking_datestr = booking.booking_date?.ToString("YYYY-MM-DD"),
+                        booking_datestr = booking.booking_date?.ToString("yyyy-MM-dd"),
                         booking_id = booking.id,
                         child_num = booking.child_num,
                         client_email = booking.client_email,
@@ -1285,20 +1285,22 @@ namespace ITravelApp.Data
                         pickup_time = booking.pickup_time,
                        // review_rate = booking.review_rate,
                         total_pax = booking.total_pax,
-                        total_price = booking.total_price,
+                        total_price = booking.route_price,
                         trip_code = booking.trip_code,
-                        trip_datestr = booking.trip_date?.ToString("YYYY-MM-DD"),
-                        trip_name = booking.vehicle_id == 1 ?  "Standard Car" : "Luxury Car",
+                        trip_datestr = booking.trip_date?.ToString("yyyy-MM-dd"),
+                        trip_name = booking.vehicle_id == 1 ? "Limousine" : "Shuttle Bus",
                         client_name = booking.client_name,
                         trip_id = booking.trip_id,
                         trip_type = booking.trip_type,
                         is_two_way = booking.is_two_way,
-                        trip_return_datestr = booking.trip_return_date?.ToString("YYYY-MM-DD"),
+                        trip_return_datestr = booking.trip_return_date?.ToString("yyyy-MM-dd"),
                         drop_address = booking.drop_address,
                         drop_lat = booking.drop_lat,
                         drop_long = booking.drop_long,
                         pickup_lat = booking.pickup_lat,
                         pickup_long = booking.pickup_long,
+                        vehicle_id=booking.vehicle_id,
+                        
                         //extras = GetExtraAssignedToBooking(result.booking_id, req.lang_code, false),
                         //extras_obligatory = GetExtraAssignedToBooking(result.booking_id, req.lang_code, true),
                         //pickups = GetPickupsForTrip(new PickupsReq { lang_code = req.lang_code, trip_id = result.trip_id, trip_type = result.trip_type }).Result
@@ -1527,7 +1529,8 @@ namespace ITravelApp.Data
                     trip_return_date = row.trip_return_dateStr != null ? DateTime.ParseExact(row.trip_return_dateStr, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) : null,
                     route_distance=row.route_distance,
                     route_price=row.route_price,
-                    vehicle_id=row.vehicle_id
+                    vehicle_id=row.vehicle_id,
+
                 };
                 // booking.total_price = CalculateBookingPrice(booking.trip_id, booking.total_pax, booking.child_num, row.currency_code);
                 if (row.id == 0)

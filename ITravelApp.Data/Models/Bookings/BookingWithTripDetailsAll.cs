@@ -64,6 +64,7 @@ namespace ITravelApp.Data.Models.Bookings
 
         public string? pickup_long { get; set; }
         public int? vehicle_id { get; set; }
+        public decimal? route_price { get; set; }
         public List<TripsPickupResponse> pickups { get; set; }
         public List<BookingExtraCast>? extras { get; set; }
         public List<BookingExtraCast>? extras_obligatory { get; set; }
