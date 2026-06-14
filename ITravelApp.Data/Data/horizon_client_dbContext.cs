@@ -28,6 +28,10 @@ public partial class horizon_client_dbContext : DbContext
 
     public virtual DbSet<client_notification_setting> client_notification_settings { get; set; }
 
+    public virtual DbSet<company_setting> company_settings { get; set; }
+
+    public virtual DbSet<currency> currencies { get; set; }
+
     public virtual DbSet<destination_img> destination_imgs { get; set; }
 
     public virtual DbSet<destination_main> destination_mains { get; set; }
@@ -36,13 +40,13 @@ public partial class horizon_client_dbContext : DbContext
 
     public virtual DbSet<destinationwithdetail> destinationwithdetails { get; set; }
 
+    public virtual DbSet<exchange_rate> exchange_rates { get; set; }
+
     public virtual DbSet<facility_main> facility_mains { get; set; }
 
     public virtual DbSet<facility_translation> facility_translations { get; set; }
 
     public virtual DbSet<newsletter_subscriber> newsletter_subscribers { get; set; }
-
-    public virtual DbSet<tbl_currency> tbl_currencies { get; set; }
 
     public virtual DbSet<tbl_language> tbl_languages { get; set; }
 
@@ -190,6 +194,44 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.client_id).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<company_setting>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("company_settings_pkey");
+
+            entity.Property(e => e.city).HasMaxLength(100);
+            entity.Property(e => e.commercial_registration).HasMaxLength(100);
+            entity.Property(e => e.company_name).HasMaxLength(200);
+            entity.Property(e => e.country).HasMaxLength(100);
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.email).HasMaxLength(255);
+            entity.Property(e => e.phone).HasMaxLength(50);
+            entity.Property(e => e.tax_number).HasMaxLength(100);
+            entity.Property(e => e.trade_name).HasMaxLength(200);
+            entity.Property(e => e.updated_at).HasColumnType("timestamp without time zone");
+
+            entity.HasOne(d => d.base_currency).WithMany(p => p.company_settings)
+                .HasForeignKey(d => d.base_currency_id)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_company_base_currency");
+        });
+
+        modelBuilder.Entity<currency>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("currencies_pkey");
+
+            entity.HasIndex(e => e.currency_code, "currencies_code_key").IsUnique();
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.currency_code).HasMaxLength(3);
+            entity.Property(e => e.currency_name).HasMaxLength(100);
+            entity.Property(e => e.currency_symbol).HasMaxLength(10);
+            entity.Property(e => e.is_active).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<destination_img>(entity =>
         {
             entity.HasKey(e => e.id).HasName("destination_imgs_pkey");
@@ -251,6 +293,18 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.route).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<exchange_rate>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("exchange_rates_pkey");
+
+            entity.HasIndex(e => new { e.currency_id, e.effective_date }, "uq_exchange_rates").IsUnique();
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.rate).HasPrecision(18, 6);
+        });
+
         modelBuilder.Entity<facility_main>(entity =>
         {
             entity.HasKey(e => e.id).HasName("facility_main_pkey");
@@ -302,16 +356,6 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.subscribed_at)
                 .HasDefaultValueSql("now()")
                 .HasColumnType("timestamp without time zone");
-        });
-
-        modelBuilder.Entity<tbl_currency>(entity =>
-        {
-            entity.HasKey(e => e.id).HasName("tbl_currency_pkey");
-
-            entity.ToTable("tbl_currency");
-
-            entity.Property(e => e.currency_code).HasMaxLength(5);
-            entity.Property(e => e.currency_name).HasMaxLength(20);
         });
 
         modelBuilder.Entity<tbl_language>(entity =>
@@ -552,6 +596,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.trip_duration).HasMaxLength(20);
             entity.Property(e => e.trip_name).HasMaxLength(50);
         });
+        modelBuilder.HasSequence("exchange_rates_id_seq");
 
         OnModelCreatingPartial(modelBuilder);
     }

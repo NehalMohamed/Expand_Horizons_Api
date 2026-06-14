@@ -1,6 +1,10 @@
 
+using ITravel_App.Models;
 using ITravel_App.services;
 using ITravel_App.Services;
+using ITravel_App.Services.POSService;
+using ITravel_App.Services.POSService.YourProject.Services.POS;
+using ITravel_App.Services.PrinterService;
 using ITravelApp.Data;
 using ITravelApp.Data.Data;
 using Mails_App;
@@ -43,6 +47,9 @@ builder.Services.AddCors(options =>
                     .WithHeaders(HeaderNames.ContentType, "*");
         });
 });
+
+Encoding.RegisterProvider(
+    CodePagesEncodingProvider.Instance);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
@@ -95,6 +102,12 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<CustomViewRendererService>();
 builder.Services.AddScoped<BookingPdfService>();
+builder.Services.AddScoped<IPrinterService,
+                           PrinterService>();
+builder.Services.Configure<PosSettings>(
+    builder.Configuration.GetSection("PosSettings"));
+
+builder.Services.AddSingleton<IPosCommunicationService, PosCommunicationService>();
 builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddAuthentication()
     .AddJwtBearer(options =>

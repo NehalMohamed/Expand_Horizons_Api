@@ -96,9 +96,19 @@ namespace ITravel_App.Services
             return _adminDAO.GetTrip_Prices(trip_id);
         }
 
-        public Task<List<tbl_currency>> Get_Currencies()
+        public Task<CompanySettingCls> Get_CompanySetting(long company_id)
+        {
+            return _adminDAO.Get_CompanySetting(company_id);
+        }
+
+        public Task<List<currency>> Get_Currencies()
         {
             return _adminDAO.Get_Currencies();
+        }
+
+        public Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate)
+        {
+            return _adminDAO.GetExchangeRates(rateDate);
         }
 
         public Task<List<tbl_language>> Get_Languages()
@@ -114,6 +124,11 @@ namespace ITravel_App.Services
         public ResponseCls SaveDestinationTranslations(destination_translation row)
         {
             return _adminDAO.SaveDestinationTranslations(row);
+        }
+
+        public ResponseCls SaveExchangeRate(List<exchange_rate> rows)
+        {
+            return _adminDAO.SaveExchangeRate(rows);
         }
 
         public ResponseCls SaveFacilityTranslation(FacilityTranslationReq row)

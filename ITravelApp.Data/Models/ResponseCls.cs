@@ -12,5 +12,6 @@ namespace ITravelApp.Data.Models
         public string? errors { get; set; }
         public string? msg { get; set; }
         public decimal idOut { get; set; }
+        public string? refOut { get; set; }
     }
 }

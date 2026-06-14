@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -32,14 +33,310 @@ namespace ITravelApp.Data
 
         #region "main_Setting"
 
-        public async Task<List<tbl_currency>> Get_Currencies()
+        public async Task<List<currency>> Get_Currencies()
         {
-            return await _db.tbl_currencies.ToListAsync();
+            return await _db.currencies.ToListAsync();
         }
         public async Task<List<tbl_language>> Get_Languages()
         {
             return await _db.tbl_languages.ToListAsync();
         }
+        //get exchange rate list
+
+        //public async Task<List<exchange_rate>> Get_ExchangeRateList()
+        //{
+        //    return await _db.exchange_rates.ToListAsync();
+        //}
+        //public async Task<List<exchange_rate>> GetExchangeRates(string rateDate)
+        //{
+
+        //    var date = DateOnly.Parse(rateDate);
+        //    return await _db.exchange_rates
+        //        .Where(x => x.effective_date <= date)
+        //        .GroupBy(x => x.currency_id)
+        //        .Select(g => g
+        //            .OrderByDescending(x => x.effective_date)
+        //            .First())
+        //        .ToListAsync();
+        //}
+        public async Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate)
+        {
+            var date = DateOnly.Parse(rateDate);
+
+            //var rates = await _db.exchange_rates
+            //    .Where(x => x.effective_date <= date)
+            //    .GroupBy(x => x.currency_id)
+            //    .Select(g => g
+            //        .OrderByDescending(x => x.effective_date)
+            //        .First())
+            //    .ToListAsync();
+            //var rates = await (
+            //    from er in _db.exchange_rates
+            //    where er.effective_date <= date
+            //    group er by er.currency_id into g
+            //    let latest = g.OrderByDescending(x => x.effective_date).First()
+            //    join c in _db.currencies
+            //        on latest.currency_id equals c.id
+            //    select new ExchangeRateCls
+            //    {
+            //        id = latest.id,
+            //        currency_id = latest.currency_id,
+            //        rate = latest.rate,
+            //        effective_date = latest.effective_date,
+            //        currency_name = c.currency_name,
+            //        currency_code=c.currency_code
+            //    }
+            //).ToListAsync();
+            var rates = (await _db.exchange_rates
+                        .Where(x => x.effective_date <= date)
+                        .ToListAsync())
+                        .GroupBy(x => x.currency_id)
+                        .Select(g => g
+                            .OrderByDescending(x => x.effective_date)
+                            .First())
+                        .ToList();
+            var currencies = await _db.currencies.ToListAsync();
+
+            var result = from er in rates
+                         join c in currencies
+                             on er.currency_id equals c.id
+                         select new ExchangeRateCls
+                         {
+                             id = er.id,
+                             currency_id = er.currency_id,
+                             currency_name = c.currency_name,
+                             currency_code=c.currency_code,
+                             rate = er.rate,
+                             effective_date = er.effective_date
+                         };
+            if (result.Any())
+                return result.ToList();
+
+            return await _db.currencies
+                 .Where(x => x.is_active)
+                 .Select(x => new ExchangeRateCls
+                 {
+                     currency_id = x.id,
+                     currency_name = x.currency_name,
+                     effective_date = date,
+                     currency_code=x.currency_code,
+                     rate = 0
+                 })
+                 .ToListAsync();
+        }
+        //public async Task<List<exchange_rate>> GetCurrentExchangeRates()
+        //{
+        //    var today = DateOnly.FromDateTime(DateTime.Today);
+
+        //    return await _db.exchange_rates
+        //        .Where(x => x.effective_date <= today)
+        //        .GroupBy(x => x.currency_id)
+        //        .Select(g => g
+        //            .OrderByDescending(x => x.effective_date)
+        //            .First())
+        //        .ToListAsync();
+        //}
+        //get compant details info
+        public async Task<CompanySettingCls> Get_CompanySetting(long company_id)
+        {
+            var result = await (
+                from er in _db.company_settings
+                where er.id == company_id
+               
+                join c in _db.currencies
+                    on er.base_currency_id equals c.id
+                select new CompanySettingCls
+                {
+                    id = er.id,
+                    base_currency_id= er.base_currency_id,
+                    address= er.address,
+                    city= er.city,
+                    commercial_registration= er.commercial_registration,
+                    company_name= er.company_name,
+                    country= er.country,
+                    email= er.email,
+                    logo_url= er.logo_url,
+                    phone= er.phone,
+                    tax_number= er.tax_number,
+                    trade_name= er.trade_name,
+                    currency_name = c.currency_name,
+                    currency_code = c.currency_code
+                }
+            ).ToListAsync();
+            if(result != null)
+            {
+                return result.FirstOrDefault();
+            }
+            return new CompanySettingCls();
+            //return await _db.company_settings.AsNoTracking().FirstOrDefaultAsync(x => x.id == company_id);
+        }
+
+        //save exchange rates 
+        //public async Task<ResponseCls> SaveExchangeRate(exchange_rate row)
+        //{
+        //    try
+        //    {
+        //        row.effective_date = DateOnly.FromDateTime(DateTime.Today);
+        //        bool isDuplicate = await _db.exchange_rates.AnyAsync(x =>
+        //            x.currency_id == row.currency_id &&
+        //            x.effective_date == row.effective_date &&
+        //            x.id != row.id);
+
+        //        if (isDuplicate)
+        //        {
+        //            return new ResponseCls
+        //            {
+        //                success = false,
+        //                errors = _localizer["DuplicateData"]
+        //            };
+        //        }
+
+        //        if (row.id == 0)
+        //            await _db.exchange_rates.AddAsync(row);
+        //        else
+        //            _db.exchange_rates.Update(row);
+
+        //        await _db.SaveChangesAsync();
+
+        //        return new ResponseCls
+        //        {
+        //            success = true,
+        //            idOut = row.id
+        //        };
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return new ResponseCls
+        //        {
+        //            success = false,
+        //            errors = _localizer["CheckAdmin"]
+        //        };
+        //    }
+        //}
+
+        public ResponseCls SaveExchangeRate(List<exchange_rate> lst)
+        {
+            ResponseCls response;
+            long maxId = 0;
+            int count = 0;
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                //var today = DateTime.Now;
+                Console.WriteLine($"Today: {today:yyyy-MM-dd}");
+               
+                foreach (var row in lst)
+                {
+                   // var dbRow = _db.exchange_rates
+                   //.Where(x => x.currency_id == row.currency_id)
+                   //.FirstOrDefault();
+
+                   // if (dbRow != null)
+                   // {
+                   //     Console.WriteLine($"DB Date: {dbRow.effective_date:yyyy-MM-dd}");
+                   // }
+                    row.effective_date = today;
+                    row.created_at = DateTime.Now;
+                    var result = _db.exchange_rates.Where(wr => wr.currency_id == row.currency_id && wr.effective_date == today).SingleOrDefault();
+                    if (result != null)
+                    {
+                        //update
+                        //result.created_at = DateTime.Now;
+                        result.rate = row.rate;
+                        _db.exchange_rates.Update(result);
+                        _db.SaveChanges();
+                        //return new ResponseCls { success = false, errors = _localizer["AddExtraDuplicate"] };
+                    }
+                    else
+                    {
+                        //save
+                       
+                        //if (_db.exchange_rates.Count() > 0)
+                        //{
+                        //    maxId = _db.exchange_rates.Max(d => d.id);
+
+                        //}
+                        //row.id = maxId + 1;
+                        _db.exchange_rates.Add(row);
+                        _db.SaveChanges();
+                    }
+                   
+                    count++;
+                }
+                if (count == lst.Count)
+                {
+                    response = new ResponseCls { errors = null, success = true };
+                }
+                else
+                {
+                    response = new ResponseCls { errors = _localizer["CheckAdmin"], success = false, idOut = 0 };
+                }
+            }
+            catch (Exception ex)
+            {
+                response = new ResponseCls { errors = _localizer["CheckAdmin"], success = false, idOut = 0 };
+            }
+            return response;
+        }
+        //public async Task<ResponseCls> SaveExchangeRate(List<exchange_rate> rows)
+        //{
+        //    try
+        //    {
+        //        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        //        foreach (var row in rows)
+        //        {
+        //            row.effective_date = today;
+        //            row.created_at = DateTime.Now;
+        //        }
+
+        //        var currencyIds = rows.Select(x => x.currency_id).ToList();
+
+        //        //var existingRates = await _db.exchange_rates
+        //        //    .Where(x =>
+        //        //        x.effective_date == today &&
+        //        //        currencyIds.Contains(x.currency_id))
+        //        //    .ToDictionaryAsync(x => x.currency_id);
+        //        var newRates = new List<exchange_rate>();
+        //        foreach (var row in rows)
+        //        {
+        //            //if (existingRates.TryGetValue(row.currency_id, out var existing))
+        //            //{
+        //            //    existing.rate = row.rate;
+        //            //}
+        //            if(row.id > 0)
+        //            {
+        //                existing.rate = row.rate;
+        //            }
+        //            else
+        //            {
+        //                row.id = 0; // ensure insert
+        //                newRates.Add(row);
+        //               // await _db.exchange_rates.AddAsync(row);
+        //            }
+        //        }
+        //        if (newRates.Count > 0)
+        //        {
+        //            await _db.exchange_rates.AddRangeAsync(newRates);
+        //        }
+
+        //        await _db.SaveChangesAsync();
+               
+
+        //        return new ResponseCls
+        //        {
+        //            success = true
+        //        };
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return new ResponseCls
+        //        {
+        //            success = false,
+        //            errors = _localizer["CheckAdmin"]
+        //        };
+        //    }
+        //}
         #endregion
         #region destination
 

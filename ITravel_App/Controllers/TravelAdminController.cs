@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace ITravel_App.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class TravelAdminController : Controller
@@ -30,6 +30,23 @@ namespace ITravel_App.Controllers
         }
 
         #region "Main_setting"
+        [HttpPost("GetExchangeRates")]
+        public async Task<IActionResult> GetExchangeRates([FromQuery] string rateDate)
+        {
+            return Ok(await _adminService.GetExchangeRates(rateDate));
+        }
+        [HttpPost("SaveExchangeRate")]
+        public IActionResult SaveExchangeRate(List<exchange_rate> rows)
+        {
+
+            //row.created_at = DateTime.Now;
+            return Ok(_adminService.SaveExchangeRate(rows));
+        }
+        [HttpPost("Get_CompanySetting")]
+        public async Task<IActionResult> Get_CompanySetting([FromQuery] long company_id)
+        {
+            return Ok(await _adminService.Get_CompanySetting(company_id));
+        }
 
         [HttpPost("Get_Currencies")]
         public async Task<IActionResult> Get_Currencies()
@@ -41,6 +58,8 @@ namespace ITravel_App.Controllers
         {
             return Ok(await _adminService.Get_Languages());
         }
+
+       
         #endregion
         #region destination
 

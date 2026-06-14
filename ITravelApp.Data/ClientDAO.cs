@@ -1554,7 +1554,7 @@ namespace ITravelApp.Data
                     //save Obligatory Extra List automatic after save Booking for first time
                     row.id = booking.id;
                     var result = CheckObligatoryExtraAndCalcPrice(row);
-                    response = new ResponseCls { errors = result.errors, success = result.success, idOut = booking.id, msg = result.success == false ? result.msg : _localizer["BookingMsg"] };
+                    response = new ResponseCls { errors = result.errors, success = result.success, idOut = booking.id, msg = result.success == false ? result.msg : _localizer["BookingMsg"],refOut=booking.booking_code };
                 }
                 else
                 {

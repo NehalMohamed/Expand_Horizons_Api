@@ -1,5 +1,7 @@
-﻿using ITravel_App.services;
+﻿using ITravel_App.Models;
+using ITravel_App.services;
 using ITravel_App.Services;
+using ITravel_App.Services.PrinterService;
 using ITravelApp.Data.Entities;
 using ITravelApp.Data.Models.Bookings;
 using ITravelApp.Data.Models.global;
@@ -16,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace ITravel_App.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BookingController : Controller
@@ -27,7 +29,8 @@ namespace ITravel_App.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly LoginUserData _loginUserData;
         private readonly BookingPdfService _pdfService;
-        public BookingController(BookingPdfService pdfService,IMailService _MailService, CustomViewRendererService viewService, IHttpContextAccessor httpContextAccessor, IClientService clientService)
+        private readonly IPrinterService _printer;
+        public BookingController(IPrinterService printer,BookingPdfService pdfService,IMailService _MailService, CustomViewRendererService viewService, IHttpContextAccessor httpContextAccessor, IClientService clientService)
         {
             _viewService = viewService;
             _clientService = clientService;
@@ -35,6 +38,7 @@ namespace ITravel_App.Controllers
             _loginUserData = Utils.getTokenData(httpContextAccessor);
             Mail_Service = _MailService;
             _pdfService = pdfService;
+            _printer = printer;
         }
 
         #region reviews
@@ -200,6 +204,19 @@ namespace ITravel_App.Controllers
         {
             string? clientId = _loginUserData.client_id;
             return Ok(await _clientService.CancelBooking(booking_id, clientId));
+        }
+
+
+        [HttpPost("PrintTicket")]
+        public async Task<IActionResult> Print(
+       BookingTicketDto ticket)
+        {
+            await _printer.PrintBookingAsync(ticket);
+
+            return Ok(new
+            {
+                success = true
+            });
         }
         #endregion
 

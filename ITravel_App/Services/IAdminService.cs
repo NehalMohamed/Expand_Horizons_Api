@@ -13,8 +13,11 @@ namespace ITravel_App.Services
     public interface IAdminService
     {
         #region "Main_setting"
-        public  Task<List<tbl_currency>> Get_Currencies();
+        public  Task<List<currency>> Get_Currencies();
         public Task<List<tbl_language>> Get_Languages();
+        public  Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate);
+        public Task<CompanySettingCls> Get_CompanySetting(long company_id);
+        public ResponseCls SaveExchangeRate(List<exchange_rate> rows);
         #endregion
         public ResponseCls SaveMainDestination(destination_main row);
         public ResponseCls SaveDestinationTranslations(destination_translation row);
