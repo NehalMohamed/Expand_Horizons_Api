@@ -54,6 +54,8 @@ public partial class horizon_client_dbContext : DbContext
 
     public virtual DbSet<transfer_category> transfer_categories { get; set; }
 
+    public virtual DbSet<transfer_img> transfer_imgs { get; set; }
+
     public virtual DbSet<trip_category> trip_categories { get; set; }
 
     public virtual DbSet<trip_facility> trip_facilities { get; set; }
@@ -395,6 +397,19 @@ public partial class horizon_client_dbContext : DbContext
                 .HasColumnType("timestamp without time zone");
         });
 
+        modelBuilder.Entity<transfer_img>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("transfer_imgs_pkey");
+
+            entity.Property(e => e.created_at)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.created_by).HasMaxLength(100);
+            entity.Property(e => e.updated_at)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+        });
+
         modelBuilder.Entity<trip_category>(entity =>
         {
             entity.HasKey(e => e.id).HasName("trip_categories_pkey");
@@ -597,6 +612,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.trip_name).HasMaxLength(50);
         });
         modelBuilder.HasSequence("exchange_rates_id_seq");
+        modelBuilder.HasSequence("transfer_imgs_id_seq");
 
         OnModelCreatingPartial(modelBuilder);
     }

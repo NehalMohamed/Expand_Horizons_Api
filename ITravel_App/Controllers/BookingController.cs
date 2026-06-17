@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace ITravel_App.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BookingController : Controller

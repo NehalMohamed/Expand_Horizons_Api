@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace ITravel_App.Controllers
 {
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class TravelAdminController : Controller
@@ -337,6 +337,13 @@ namespace ITravel_App.Controllers
             return Ok(await _adminService.GetTransfer_Categories());
         }
 
+        [HttpPost("GetImgsByTransfer")]
+        public async Task<IActionResult> GetImgsByTransfer([FromQuery] decimal ? category_id)
+        {
+
+            return Ok(await _adminService.GetImgsByTransfer(category_id));
+        }
+
         [HttpPost("SaveTransferCategory")]
         public IActionResult SaveTransferCategory(TransferCategorySaveReq row)
         {
@@ -344,6 +351,54 @@ namespace ITravel_App.Controllers
             row.created_by = email;
 
             return Ok(_adminService.SaveTransferCategory(row));
+        }
+
+        [HttpPost("UpdateTransferImage")]
+        public IActionResult UpdateTransferImage(TransferImgUpdateReq trns)
+        {
+            string email = _loginUserData.client_email;
+            trns.created_by = email;
+            return Ok(_adminService.UpdateTransferImage(trns));
+        }
+
+        [HttpPost("saveTransferImage")]
+        public IActionResult saveTransferImage([FromForm] TransferImgReq req)
+        {
+            string email = _loginUserData.client_email;
+            List<transfer_img> lst = new List<transfer_img>();
+            foreach (var img in req.imgs)
+            {
+
+                var path = Path.Combine("images" + "/transfer/", img.FileName);
+                //var path = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "Images" + "//", cls.img.FileName);
+                try
+                {
+                    using (FileStream stream = new FileStream(path, FileMode.Create))
+                    {
+                        img.CopyTo(stream);
+                        stream.Close();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+
+                }
+                //using var image = await Image.LoadAsync(req.img.OpenReadStream());
+                transfer_img image = new transfer_img
+                {
+                    transfer_category_id = req.transfer_category_id,
+                    img_name = img.FileName,
+                    img_path = path,
+                    is_default = req.is_default,
+                    id = req.id,
+                    created_by = email,
+                };
+                lst.Add(image);
+            }
+
+
+            return Ok(_adminService.saveTransferImage(lst));
         }
         #endregion
 

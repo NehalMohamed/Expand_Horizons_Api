@@ -42,7 +42,64 @@ namespace ITravelApp.Data
             return await _db.tbl_languages.ToListAsync();
         }
         //get exchange rate list
+        public async Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate)
+        {
+            var date = DateOnly.Parse(rateDate);
+            try
+            {
+                var currencies = await _db.currencies
+               .Where(x => x.is_active)
+               .ToListAsync();
 
+                var rates = await _db.exchange_rates
+                    .Where(x => x.effective_date <= date)
+                    .ToListAsync();
+
+                var latestRates = rates
+                    .GroupBy(x => x.currency_id)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderByDescending(x => x.effective_date).First());
+
+                var result = currencies.Select(currency =>
+                {
+                    if (latestRates.TryGetValue(currency.id, out var rate))
+                    {
+                        bool isSameDate = rate.effective_date == date;
+
+                        return new ExchangeRateCls
+                        {
+                            id = isSameDate ? rate.id : 0,
+                            currency_id = currency.id,
+                            currency_name = currency.currency_name,
+                            currency_code = currency.currency_code,
+                            rate = rate.rate,
+                            effective_date = date
+                        };
+                    }
+
+                    return new ExchangeRateCls
+                    {
+                        id = 0,
+                        currency_id = currency.id,
+                        currency_name = currency.currency_name,
+                        currency_code = currency.currency_code,
+                        rate = 0,
+                        effective_date = date
+                    };
+                })
+                .OrderBy(x => x.currency_code)
+                .ToList();
+                return result;
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+           
+
+            
+        }
         //public async Task<List<exchange_rate>> Get_ExchangeRateList()
         //{
         //    return await _db.exchange_rates.ToListAsync();
@@ -59,71 +116,47 @@ namespace ITravelApp.Data
         //            .First())
         //        .ToListAsync();
         //}
-        public async Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate)
-        {
-            var date = DateOnly.Parse(rateDate);
+        //public async Task<List<ExchangeRateCls>> GetExchangeRates(string rateDate)
+        //{
+        //    var date = DateOnly.Parse(rateDate);
 
-            //var rates = await _db.exchange_rates
-            //    .Where(x => x.effective_date <= date)
-            //    .GroupBy(x => x.currency_id)
-            //    .Select(g => g
-            //        .OrderByDescending(x => x.effective_date)
-            //        .First())
-            //    .ToListAsync();
-            //var rates = await (
-            //    from er in _db.exchange_rates
-            //    where er.effective_date <= date
-            //    group er by er.currency_id into g
-            //    let latest = g.OrderByDescending(x => x.effective_date).First()
-            //    join c in _db.currencies
-            //        on latest.currency_id equals c.id
-            //    select new ExchangeRateCls
-            //    {
-            //        id = latest.id,
-            //        currency_id = latest.currency_id,
-            //        rate = latest.rate,
-            //        effective_date = latest.effective_date,
-            //        currency_name = c.currency_name,
-            //        currency_code=c.currency_code
-            //    }
-            //).ToListAsync();
-            var rates = (await _db.exchange_rates
-                        .Where(x => x.effective_date <= date)
-                        .ToListAsync())
-                        .GroupBy(x => x.currency_id)
-                        .Select(g => g
-                            .OrderByDescending(x => x.effective_date)
-                            .First())
-                        .ToList();
-            var currencies = await _db.currencies.ToListAsync();
+        //    var rates = (await _db.exchange_rates
+        //                .Where(x => x.effective_date <= date)
+        //                .ToListAsync())
+        //                .GroupBy(x => x.currency_id)
+        //                .Select(g => g
+        //                    .OrderByDescending(x => x.effective_date)
+        //                    .First())
+        //                .ToList();
+        //    var currencies = await _db.currencies.ToListAsync();
 
-            var result = from er in rates
-                         join c in currencies
-                             on er.currency_id equals c.id
-                         select new ExchangeRateCls
-                         {
-                             id = er.id,
-                             currency_id = er.currency_id,
-                             currency_name = c.currency_name,
-                             currency_code=c.currency_code,
-                             rate = er.rate,
-                             effective_date = er.effective_date
-                         };
-            if (result.Any())
-                return result.ToList();
+        //    var result = from er in rates
+        //                 join c in currencies
+        //                     on er.currency_id equals c.id
+        //                 select new ExchangeRateCls
+        //                 {
+        //                     id = er.id,
+        //                     currency_id = er.currency_id,
+        //                     currency_name = c.currency_name,
+        //                     currency_code=c.currency_code,
+        //                     rate = er.rate,
+        //                     effective_date = er.effective_date
+        //                 };
+        //    if (result.Any())
+        //        return result.ToList();
 
-            return await _db.currencies
-                 .Where(x => x.is_active)
-                 .Select(x => new ExchangeRateCls
-                 {
-                     currency_id = x.id,
-                     currency_name = x.currency_name,
-                     effective_date = date,
-                     currency_code=x.currency_code,
-                     rate = 0
-                 })
-                 .ToListAsync();
-        }
+        //    return await _db.currencies
+        //         .Where(x => x.is_active)
+        //         .Select(x => new ExchangeRateCls
+        //         {
+        //             currency_id = x.id,
+        //             currency_name = x.currency_name,
+        //             effective_date = date,
+        //             currency_code=x.currency_code,
+        //             rate = 0
+        //         })
+        //         .ToListAsync();
+        //}
         //public async Task<List<exchange_rate>> GetCurrentExchangeRates()
         //{
         //    var today = DateOnly.FromDateTime(DateTime.Today);
@@ -235,9 +268,10 @@ namespace ITravelApp.Data
                    // {
                    //     Console.WriteLine($"DB Date: {dbRow.effective_date:yyyy-MM-dd}");
                    // }
-                    row.effective_date = today;
+                    //row.effective_date = today;
+                    
                     row.created_at = DateTime.Now;
-                    var result = _db.exchange_rates.Where(wr => wr.currency_id == row.currency_id && wr.effective_date == today).SingleOrDefault();
+                    var result = _db.exchange_rates.Where(wr => wr.currency_id == row.currency_id && wr.effective_date == row.effective_date).SingleOrDefault();
                     if (result != null)
                     {
                         //update
@@ -1763,10 +1797,154 @@ namespace ITravelApp.Data
             }
             return response;
         }
+        
+        //get images list for specific transfer
+        public async Task<List<transfer_img>> GetImgsByTransfer(decimal? category_id)
+        {
+            try
+            {
+                return await _db.transfer_imgs.Where(wr => wr.transfer_category_id == category_id).OrderBy(o => o.id).Select(s => new transfer_img
+                {
+                    id = s.id,
+                    img_height = s.img_height,
+                    img_name = s.img_name,
+                    img_path = "https://expand-horizons.de/api/" + s.img_path,
+                    img_resize_path = "https://expand-horizons.de/api/" + s.img_resize_path,
+                    img_width = s.img_width,
+                    is_default = s.is_default,
+                    transfer_category_id = s.transfer_category_id,
+                }).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+
+        public ResponseCls saveTransferImage(List<transfer_img> lst)
+        {
+            ResponseCls response;
+            int maxId = 0;
+            int count = 0;
+            try
+            {
+                foreach (var trns in lst)
+                {
+                    if (trns.id == 0)
+                    {
+                        ////check duplicate order (in add new row)
+                        //if (_db.transfer_imgs.Where(wr => wr.img_order == trns.img_order).SingleOrDefault() != null)
+                        //{
+                        //    return new ResponseCls { success = false, errors = _localizer["DuplicateOrder"] };
+                        //}
+                        //check duplicate validation
+                        var result = _db.transfer_imgs.Where(wr => wr.transfer_category_id == trns.transfer_category_id && wr.is_default == (trns.is_default == true ? trns.is_default : null)).SingleOrDefault();
+                        if (result != null)
+                        {
+                            return new ResponseCls { success = false, errors = _localizer["DuplicateData"] };
+                        }
+                        if (_db.transfer_imgs.Count() > 0)
+                        {
+                            maxId = _db.transfer_imgs.Max(d => d.id);
+
+                        }
+                        trns.id = maxId + 1;
+                        _db.transfer_imgs.Add(trns);
+                        _db.SaveChanges();
+                    }
+                    else
+                    {
+                        //check duplicate order (in update row)
+                        //if (_db.transfer_imgs.Where(wr => wr.img_order == trip.img_order && wr.id != trip.id).SingleOrDefault() != null)
+                        //{
+                        //    return new ResponseCls { success = false, errors = _localizer["DuplicateOrder"] };
+                        //}
+                        trns.updated_at = DateTime.Now;
+                        _db.transfer_imgs.Update(trns);
+                        _db.SaveChanges();
+                    }
+                    count++;
+                }
+
+                if (count == lst.Count)
+                {
+                    response = new ResponseCls { errors = null, success = true };
+                }
+                else
+                {
+                    response = new ResponseCls { errors = _localizer["CheckAdmin"], success = true };
+                }
+
+
+
+            }
+
+            catch (Exception ex)
+            {
+                response = new ResponseCls { errors = _localizer["CheckAdmin"], success = false, idOut = 0 };
+            }
+            return response;
+        }
+
+
+        //use to set transfer image is default , and first should check if there is another image with same transfer category id is default or not
+        public ResponseCls UpdateTransferImage(TransferImgUpdateReq cls)
+        {
+            ResponseCls response;
+            try
+            {
+                transfer_img trns = new transfer_img
+                {
+                    id = cls.id,
+                    transfer_category_id = cls.transfer_category_id,
+                    is_default = cls.is_default,
+                    img_name = cls.img_name,
+                    img_path = cls.img_path,
+                    created_by = cls.created_by
+                };
+                if (cls.delete == true)
+                {
+                    _db.Remove(trns);
+                    _db.SaveChanges();
+                    return new ResponseCls { errors = null, success = true };
+                }
+                if (trns.is_default == true)
+                {
+                    var result = _db.transfer_imgs.Where(wr => wr.transfer_category_id == trns.transfer_category_id && wr.is_default == true).SingleOrDefault();
+                    if (result != null)
+                    {
+                        //if already an image is default , so make it false and set is default to new one
+                        result.updated_at = DateTime.Now;
+                        result.is_default = false;
+                        _db.transfer_imgs.Update(result);
+                        _db.SaveChanges();
+                    }
+
+                }
+                var row = _db.transfer_imgs.Where(wr => wr.id == trns.id).SingleOrDefault();
+                if (row != null)
+                {
+                    row.updated_at = DateTime.Now;
+                    row.is_default = trns.is_default;
+                    _db.transfer_imgs.Update(row);
+                    _db.SaveChanges();
+                }
+                response = new ResponseCls { errors = null, success = true };
+
+
+
+            }
+            catch (Exception ex)
+            {
+                response = new ResponseCls { errors = _localizer["CheckAdmin"], success = false, idOut = 0 };
+            }
+            return response;
+        }
         #endregion
 
         #region "booking"
-         public async Task<BookingAll> GetAllBooking(BookingAllReq req)
+        public async Task<BookingAll> GetAllBooking(BookingAllReq req)
         {
             DateTime dateFrom = DateTime.ParseExact(req.date_from, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
             DateTime dateTo = DateTime.ParseExact(req.date_to, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);

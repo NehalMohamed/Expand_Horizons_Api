@@ -5,6 +5,7 @@ using ITravelApp.Data.Models.Bookings.Client;
 using ITravelApp.Data.Models.destination;
 using ITravelApp.Data.Models.global;
 using ITravelApp.Data.Models.profile;
+using ITravelApp.Data.Models.Transfer;
 using ITravelApp.Data.Models.trips;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -58,6 +59,10 @@ namespace ITravel_App.Services
 
         #region "Contact"
         public ResponseCls SubscribeNewSletter(newsletter_subscriber row);
+        #endregion
+
+        #region "transfer"
+        public List<TransferCategoryAll> GetTransferCategoryAll();
         #endregion
     }
 }

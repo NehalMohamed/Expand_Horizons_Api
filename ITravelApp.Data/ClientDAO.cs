@@ -6,6 +6,7 @@ using ITravelApp.Data.Models.Bookings.Client;
 using ITravelApp.Data.Models.destination;
 using ITravelApp.Data.Models.global;
 using ITravelApp.Data.Models.profile;
+using ITravelApp.Data.Models.Transfer;
 using ITravelApp.Data.Models.trips;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -2063,6 +2064,40 @@ namespace ITravelApp.Data
             }
             return response;
         }
+        #endregion
+
+        #region "Transfer"
+        public List<TransferCategoryAll> GetTransferCategoryAll()
+        {
+            try
+            {
+                var records = from transfer in _db.transfer_categories
+
+                              join imgs in _db.transfer_imgs.Where(wr => wr.is_default == true) on transfer.id equals imgs.transfer_category_id into TRNSAll
+                              from combined in TRNSAll.DefaultIfEmpty()               // LEFT JOIN
+                              select new TransferCategoryAll
+                              {
+                                  category_code= transfer.category_code,
+                                  category_name= transfer.category_name,
+                                  child_price= transfer.child_price,
+                                  currency_code= transfer.currency_code,
+                                  default_img=combined == null ? "" : "https://expand-horizons.de/api/" +  combined.img_path,
+                                  id= transfer.id,
+                                  max_capacity= transfer.max_capacity,
+                                  max_price= transfer.max_price,
+                                  min_capacity= transfer.min_capacity,
+                                  min_price= transfer.min_price,
+                                  notes= transfer.notes
+                              };
+                return records.ToList();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            
+        }
+
         #endregion
 
     }

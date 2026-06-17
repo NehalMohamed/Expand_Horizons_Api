@@ -24,7 +24,7 @@ namespace ITravel_App.Services.PrinterService
                     Path.Combine(
                         _env.WebRootPath,
                         "images",
-                        "logo.png"));
+                        "printerlogo.jpeg"));
 
             var pdfBytes = document.GeneratePdf();
 
@@ -66,7 +66,7 @@ namespace ITravel_App.Services.PrinterService
                 Path.Combine(
                     _env.WebRootPath,
                     "images",
-                    "logo.png");
+                    "printerlogo.jpeg");
 
             var generator =
                 new TicketImageGenerator();

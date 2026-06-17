@@ -195,5 +195,20 @@ namespace ITravel_App.Services
         {
             return _adminDAO.UpdateTripImage(trip);
         }
+
+        public Task<List<transfer_img>> GetImgsByTransfer(decimal? category_id)
+        {
+            return _adminDAO.GetImgsByTransfer(category_id);
+        }
+
+        public ResponseCls saveTransferImage(List<transfer_img> lst)
+        {
+            return _adminDAO.saveTransferImage(lst); 
+        }
+
+        public ResponseCls UpdateTransferImage(TransferImgUpdateReq cls)
+        {
+            return _adminDAO.UpdateTransferImage(cls);  
+        }
     }
 }

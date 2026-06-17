@@ -6,6 +6,7 @@ using ITravelApp.Data.Models.Bookings.Client;
 using ITravelApp.Data.Models.destination;
 using ITravelApp.Data.Models.global;
 using ITravelApp.Data.Models.profile;
+using ITravelApp.Data.Models.Transfer;
 using ITravelApp.Data.Models.trips;
 using Microsoft.EntityFrameworkCore.Migrations;
 using System.Collections.Generic;
@@ -114,6 +115,11 @@ namespace ITravel_App.Services
         public Task<List<client_image>> GetProfileImage(string clientId)
         {
             return _clientDAO.GetProfileImage(clientId);
+        }
+
+        public List<TransferCategoryAll> GetTransferCategoryAll()
+        {
+            return _clientDAO.GetTransferCategoryAll();
         }
 
         public Task<List<trip_category>> GetTripCategories()

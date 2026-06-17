@@ -26,8 +26,7 @@ namespace ITravel_App.Services
         public Task<List<destination_img>> GetImgsByDestination(int? destination_id);
         public Task<List<destination_main>> GetDestination_Mains(bool leaf);
         public ResponseCls UpdateDestinationImage(DestinationImgUpdateReq cls);
-        public Task<List<transfer_category>> GetTransfer_Categories();
-        public ResponseCls SaveTransferCategory(TransferCategorySaveReq row);
+      
 
 
         #region trips
@@ -61,5 +60,15 @@ namespace ITravel_App.Services
         #region "booking"
         public Task<BookingAll> GetAllBooking(BookingAllReq req);
         #endregion
+
+
+        #region "transfer"
+        public Task<List<transfer_category>> GetTransfer_Categories();
+        public ResponseCls SaveTransferCategory(TransferCategorySaveReq row);
+        public  Task<List<transfer_img>> GetImgsByTransfer(decimal? category_id);
+        public ResponseCls saveTransferImage(List<transfer_img> lst);
+        public ResponseCls UpdateTransferImage(TransferImgUpdateReq cls);
+        #endregion
+
     }
 }

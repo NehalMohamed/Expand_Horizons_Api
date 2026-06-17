@@ -99,6 +99,13 @@ namespace ITravel_App.Controllers
         }
         #endregion
 
+        #region "transfer"
+        [HttpPost("GetTransferCategoryAll")]
+        public IActionResult GetTransferCategoryAll()
+        {
+            return Ok(_clientService.GetTransferCategoryAll());
+        }
+        #endregion 
 
     }
 }
