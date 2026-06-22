@@ -7,6 +7,7 @@ using ITravel_App.Services.POSService.YourProject.Services.POS;
 using ITravel_App.Services.PrinterService;
 using ITravelApp.Data;
 using ITravelApp.Data.Data;
+using ITravelApp.Data.Models.global;
 using Mails_App;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -90,6 +91,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 // Register DinkToPdf converter
 //builder.Services.AddSingleton(typeof(IConverter), new SynchronizedConverter(new PdfTools()));
+
+//base url
+builder.Services.Configure<Urls>(builder.Configuration.GetSection("Urls"));
+
 //mail
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddDbContext<horizon_client_dbContext>(options =>

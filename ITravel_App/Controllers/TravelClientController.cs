@@ -25,6 +25,7 @@ namespace ITravel_App.Controllers
         }
 
         #region destination
+
         //get destination tree
         [HttpPost("GetDestination_Tree")]
         public IActionResult GetDestination_Tree(DestinationReq req)

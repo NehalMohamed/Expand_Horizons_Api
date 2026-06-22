@@ -8,6 +8,7 @@ using ITravelApp.Data.Models.Transfer;
 using ITravelApp.Data.Models.trips;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -24,11 +25,12 @@ namespace ITravelApp.Data
     {
         private readonly IStringLocalizer<Messages> _localizer;
         private readonly horizon_client_dbContext _db;
-
-        public AdminDAO(horizon_client_dbContext db, IStringLocalizer<Messages> localizer)
+        private readonly Urls _urls = null;
+        public AdminDAO(horizon_client_dbContext db, IStringLocalizer<Messages> localizer ,IOptions<Urls> options)
         {
             _db = db;
             _localizer = localizer;
+            _urls = options.Value;
         }
 
         #region "main_Setting"
@@ -553,7 +555,7 @@ namespace ITravelApp.Data
                         dest_code = dest.dest_code,
                         dest_description = combinedDEST != null ? combinedDEST.dest_description : null,
                         dest_name = combinedDEST != null ? combinedDEST.dest_name : null,
-                        //img_path = IMGDEST != null ? "https://expand-horizons.de/api/" + IMGDEST.img_path : null,
+                        //img_path = IMGDEST != null ? _urls.BaseUrl + IMGDEST.img_path : null,
                         lang_code = combinedDEST != null ? combinedDEST.lang_code : null,
                         dest_default_name = dest.dest_default_name,
                         route = dest.route,
@@ -577,7 +579,7 @@ namespace ITravelApp.Data
                 //                 dest_code = dest.dest_code,
                 //                 dest_description = trans.dest_description,
                 //                 dest_name = trans.dest_name,
-                //                 img_path = combined != null ? "https://expand-horizons.de/api/" + combined.img_path : null,
+                //                 img_path = combined != null ? _urls.BaseUrl + combined.img_path : null,
                 //                 lang_code = trans.lang_code,
                 //                 dest_default_name= dest.dest_default_name    ,
                 //                 route=dest.route
@@ -631,8 +633,8 @@ namespace ITravelApp.Data
                                                     id = s.id,
                                                     img_height = s.img_height,
                                                     img_name = s.img_name,
-                                                    img_path = "https://expand-horizons.de/api/" + s.img_path,
-                                                    img_resize_path = "https://expand-horizons.de/api/" + s.img_resize_path,
+                                                    img_path = _urls.BaseUrl + s.img_path,
+                                                    img_resize_path = _urls.BaseUrl + s.img_resize_path,
                                                     img_width = s.img_width,
                                                     is_default = s.is_default,
                                                     destination_id = s.destination_id,
@@ -1634,8 +1636,8 @@ namespace ITravelApp.Data
                     id = s.id,
                     img_height = s.img_height,
                     img_name = s.img_name,
-                    img_path = "https://expand-horizons.de/api/" + s.img_path,
-                    img_resize_path = "https://expand-horizons.de/api/" + s.img_resize_path,
+                    img_path = _urls.BaseUrl + s.img_path,
+                    img_resize_path = _urls.BaseUrl + s.img_resize_path,
                     img_width = s.img_width,
                     is_default = s.is_default,
                     trip_id = s.trip_id,
@@ -1808,8 +1810,8 @@ namespace ITravelApp.Data
                     id = s.id,
                     img_height = s.img_height,
                     img_name = s.img_name,
-                    img_path = "https://expand-horizons.de/api/" + s.img_path,
-                    img_resize_path = "https://expand-horizons.de/api/" + s.img_resize_path,
+                    img_path = _urls.BaseUrl + s.img_path,
+                    img_resize_path = _urls.BaseUrl + s.img_resize_path,
                     img_width = s.img_width,
                     is_default = s.is_default,
                     transfer_category_id = s.transfer_category_id,

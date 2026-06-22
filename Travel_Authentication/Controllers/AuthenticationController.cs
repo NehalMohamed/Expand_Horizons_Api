@@ -139,15 +139,19 @@ namespace Travel_Authentication.Controllers
         [HttpPost("LoginUser")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
+
+            //check first if email exist in db or not
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
                 return Unauthorized(BuildErrorResponse(_localizer["MailPasswordIncorrect"]));
 
             try
             {
+                //googleId ==1 mean user register before with gmail so normal login wrong redirect with info msg to client
                 if (!string.IsNullOrWhiteSpace(user.GoogleId) && user.GoogleId == "1")
                    return Unauthorized(BuildRedirectLoginError(_localizer["GoogleAccountRedirect"]));
                 
+                //check if password correct or not
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
                     return Unauthorized(BuildErrorResponse(_localizer["MailPasswordIncorrect"]));
 
@@ -156,12 +160,14 @@ namespace Travel_Authentication.Controllers
 
                 //if (await _userManager.IsInRoleAsync(user, "Admin"))
                 //    return await HandleAdminRegistration(user, role);
+
+                //check the user role , in case Admin & POS no need to check mail verfication
                 if (await _userManager.IsInRoleAsync(user, "Admin") ||
                     await _userManager.IsInRoleAsync(user, "POS"))
                 {
                     return await HandleAdminRegistration(user, role);
                 }
-                // Not confirmed → send OTP
+                // mail Not confirmed → send OTP to client mail
                 if (!user.EmailConfirmed)
                     return await HandleUnverifiedEmailLogin(user, model.lang, $"{_localizer["OTPMSG"]} {user.Email}");
 
@@ -175,15 +181,17 @@ namespace Travel_Authentication.Controllers
             }
         }
 
-
+        //used to change User's password
         [HttpPost("changePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] PasswordCls model)
         {
+            //check first if user found or not
             if (string.IsNullOrWhiteSpace(model.userId))
                 return BadRequest(BuildErrorResponse(_localizer["UserNotFound"]));
 
             try
             {
+                //check first if user found in db or not
                 var user = await _userManager.FindByIdAsync(model.userId);
                 if (user == null)
                     return Unauthorized(BuildErrorResponse(_localizer["UserNotFound"]));
@@ -260,17 +268,20 @@ namespace Travel_Authentication.Controllers
 
         }
 
+        //used in login user with gmail, different than normal login, not check for password
         [HttpPost("LoginGmail")]
         public async Task<IActionResult> LoginGmail([FromBody] AppsLoginModel model)
         {
             try
             {
+                //check first if user exist or not
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
                     return Unauthorized(BuildErrorResponse(_localizer["UserNotFound"]));
 
                 var roles = await _userManager.GetRolesAsync(user);
 
+                //check if email confirmed or not
                 if (!user.EmailConfirmed)
                     return await HandleUnverifiedEmailLogin(user, model.lang, roles.FirstOrDefault());
 
@@ -283,11 +294,14 @@ namespace Travel_Authentication.Controllers
                     BuildErrorResponse(_localizer["CheckAdmin"] ?? "Internal server error"));
             }
         }
+
+        //used to check OTP is valid or not
         [HttpPost("ConfirmOTP")]
         public async Task<IActionResult> ConfirmOTP([FromBody] OTPConfirmCls model)
         {
             try
             {
+                //check first if user exist or not
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
                     return Unauthorized(BuildErrorResponse(_localizer["UserNotFound"]));
@@ -295,6 +309,7 @@ namespace Travel_Authentication.Controllers
                 var roles = await _userManager.GetRolesAsync(user);
                 var isCodeValid = await _userManager.VerifyTwoFactorTokenAsync(user, "Email", model.otp);
 
+                
                 if (!isCodeValid)
                     return Ok(BuildErrorResponse(_localizer["InvalidCode"]));
 
@@ -320,6 +335,8 @@ namespace Travel_Authentication.Controllers
                     BuildErrorResponse(_localizer["CheckAdmin"]));
             }
         }
+
+        //used to make refresh token
 
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(TokenModel model)
@@ -366,6 +383,7 @@ namespace Travel_Authentication.Controllers
             //return Ok(new { AccessToken = newAccessToken });
         }
 
+        //used to get all users' roles
         [HttpPost("GetRoles")]
         public IActionResult GetRoles()
         {
@@ -383,6 +401,7 @@ namespace Travel_Authentication.Controllers
             }
         }
 
+        //get all users list
         [HttpPost("GetUsers")]
         public IActionResult GetUsers()
         {
@@ -413,6 +432,7 @@ namespace Travel_Authentication.Controllers
             }
         }
 
+        //get users list grouping by role
         [HttpPost("GetUsersGrp")]
         public async Task<IActionResult> GetUsersGrp()
         {
@@ -439,7 +459,7 @@ namespace Travel_Authentication.Controllers
         }
 
 
-
+        //used to delete specific user 
         // DELETE api/users/{id}
         //[HttpDelete("{id}")]
         [HttpPost("DeleteUser")]
@@ -457,6 +477,9 @@ namespace Travel_Authentication.Controllers
 
             return Ok(new ResponseCls { message = "User deleted successfully.", isSuccessed = true });
         }
+
+        //used in Admin dashbord to create user , this also not check again mail verfication
+        // as once admin create user . mail verify automatic
         [HttpPost("CreateUserByAdmin")]
         public async Task<IActionResult> CreateUserByAdmin([FromBody] RegisterModel model)
         {
