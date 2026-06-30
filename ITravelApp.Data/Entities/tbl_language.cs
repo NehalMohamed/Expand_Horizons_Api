@@ -10,4 +10,6 @@ public partial class tbl_language
     public string? lang_code { get; set; }
 
     public string? lang_name { get; set; }
+
+    public string? lang_flag { get; set; }
 }

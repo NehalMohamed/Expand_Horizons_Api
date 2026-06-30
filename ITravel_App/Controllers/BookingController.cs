@@ -213,6 +213,7 @@ namespace ITravel_App.Controllers
         {
             await _printer.PrintBookingAsync(ticket);
 
+
             return Ok(new
             {
                 success = true

@@ -43,17 +43,20 @@ namespace ITravel_App.Controllers
             return Ok(_adminService.SaveExchangeRate(rows));
         }
         [HttpPost("Get_CompanySetting")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get_CompanySetting([FromQuery] long company_id)
         {
             return Ok(await _adminService.Get_CompanySetting(company_id));
         }
 
         [HttpPost("Get_Currencies")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get_Currencies()
         {
             return Ok(await _adminService.Get_Currencies());
         }
         [HttpPost("Get_Languages")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get_Languages()
         {
             return Ok(await _adminService.Get_Languages());

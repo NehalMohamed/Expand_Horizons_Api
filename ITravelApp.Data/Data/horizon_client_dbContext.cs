@@ -365,6 +365,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.HasKey(e => e.id).HasName("tbl_languages_pkey");
 
             entity.Property(e => e.lang_code).HasMaxLength(5);
+            entity.Property(e => e.lang_flag).HasMaxLength(100);
             entity.Property(e => e.lang_name).HasMaxLength(20);
         });
 

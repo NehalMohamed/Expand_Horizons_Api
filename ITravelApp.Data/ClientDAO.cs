@@ -1521,7 +1521,7 @@ namespace ITravelApp.Data
                     client_nationality = result.client_nationality,
                     client_phone = result.client_phone,
                     currency_code = result.currency_code,
-                    default_img = result.default_img,
+                    default_img = _urls.BaseUrl + result.default_img,
                     gift_code = result.gift_code,
                     infant_num = result.infant_num,
                     lang_code = result.lang_code,
