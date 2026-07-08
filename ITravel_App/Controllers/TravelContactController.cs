@@ -29,6 +29,19 @@ namespace ITravel_App.Controllers
            
         }
         #region "contact"
+
+        /// <summary>
+        ///send user 's contact mail 
+        /// </summary>
+
+        /// <returns>success response</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelContact/SendContactMail
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("SendContactMail")]
         public IActionResult SendContactMail(ContactReq req)
         {
@@ -49,6 +62,17 @@ namespace ITravel_App.Controllers
             return Ok(Mail_Service.ContactMail(Mail_Data, req.email));
         }
 
+        /// <summary>
+        ///send user 's subscribe mail & and save it in DB
+        /// </summary>
+
+        /// <returns>success response</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelContact/SubscribeNewSletter
+        ///
+        /// </remarks>
         [HttpPost("SubscribeNewSletter")]
         public IActionResult SubscribeNewSletter(newsletter_subscriber req)
         {

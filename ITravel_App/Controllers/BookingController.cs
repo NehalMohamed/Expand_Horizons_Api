@@ -42,7 +42,16 @@ namespace ITravel_App.Controllers
         }
 
         #region reviews
-       
+        /// <summary>Save Trip's Review For specific user
+        /// </summary>
+
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/SaveReviewForTrip
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("SaveReviewForTrip")]
         public IActionResult SaveReviewForTrip(tbl_review row)
         {
@@ -53,7 +62,17 @@ namespace ITravel_App.Controllers
         #endregion
 
         #region "wishlist"
+        /// <summary>Save Trip's For specific user's wishlist
+        /// </summary>
 
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/AddTripToWishList
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        /// 
         [HttpPost("AddTripToWishList")]
         public IActionResult AddTripToWishList(TripsWishlistReq row)
         {
@@ -62,7 +81,18 @@ namespace ITravel_App.Controllers
             return Ok(_clientService.AddTripToWishList(row));
         }
 
-
+        /// <summary>
+        /// Get user's wishlist
+        /// </summary>
+        /// <returns>Wish list .</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/GetClientWishList
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("GetClientWishList")]
         public async Task<IActionResult> GetClientWishList(ClientWishListReq req)
         {
@@ -71,11 +101,23 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.GetClientWishList(req));
         }
 
-        
+
         #endregion
 
 
         #region "Booking"
+        /// <summary>
+        /// Save Booking For specific user
+        /// </summary>
+
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/SaveClientBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("SaveClientBooking")]
         public IActionResult SaveClientBooking(BookingCls row)
         {
@@ -87,12 +129,38 @@ namespace ITravel_App.Controllers
             row.client_email = email;
             return Ok(_clientService.SaveClientBooking(row));
         }
+
+        /// <summary>
+        /// Get Extra facilities For speciifc trip
+        /// </summary>
+        /// <returns>Facilities list .</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/GetTrip_Extra_Mains
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("GetTrip_Extra_Mains")]
         public IActionResult GetTrip_Extra_Mains(TripExtraReq req)
         {
            // return Ok( _clientService.getFacilityForTrip(req.trip_id,req.lang_code,req.isExtra,req.is_obligatory));
             return Ok( _clientService.GetTrip_Extra_Mains(req));
         }
+
+        /// <summary>
+        /// Save Extras which choosen by user To Booking
+        /// </summary>
+
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/AssignExtraToBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("AssignExtraToBooking")]
         public IActionResult AssignExtraToBooking(List<booking_extra> lst)
         {
@@ -104,6 +172,18 @@ namespace ITravel_App.Controllers
         //    return Ok(_clientService.CalculateBookingPrice(req));
         //}
 
+        /// <summary>
+        /// Get Booking details for specific user
+        /// </summary>
+        /// <returns>Booking details .</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/GetBookingSummary
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("GetBookingSummary")]
         public async Task<IActionResult> GetBookingWithDetails(BookingReq req)
         {
@@ -112,6 +192,18 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.GetBookingWithDetails(req));
         }
 
+        /// <summary>
+        ///confirm booking by changing status
+        /// </summary>
+
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/ConfirmBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("ConfirmBooking")]
         public async Task<IActionResult> ConfirmBooking(ConfirmBookingReq req)
         {
@@ -125,10 +217,12 @@ namespace ITravel_App.Controllers
             if (model != null)
             {
                 model.client_name = FullName;
+                //convert view to string html to send in mail as body (booking vochure)
                 var msg = await _viewService.RenderViewToStringAsync(templatePath, model, ControllerContext);
                 //generate pdf from chtml 
 
                 //byte[] pdf = await _pdfService.GeneratePdfFromHtmlAsync(msg);
+                //generate booking vochure as pdf to send by mail
                 var pdfBytes = await _pdfService.GenerateBookingPdf(model);
                 MailData Mail_Data = new MailData {
                     EmailToId = client_email, EmailToName = FullName,
@@ -151,6 +245,18 @@ namespace ITravel_App.Controllers
             
         }
 
+        /// <summary>
+        ///confirm booking by changing status
+        /// </summary>
+
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/ConfirmBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        ///
         [HttpPost("ConfirmBookingPos")]
         public async Task<IActionResult> ConfirmBookingPos(ConfirmBookingReq req)
         {
@@ -165,10 +271,14 @@ namespace ITravel_App.Controllers
             if (model != null)
             {
                 model.client_name = client_email;
+                //convert view to string html to send in mail as body (booking vochure)
                 var msg = await _viewService.RenderViewToStringAsync(templatePath, model, ControllerContext);
+                
                 //generate pdf from chtml 
 
                 //byte[] pdf = await _pdfService.GeneratePdfFromHtmlAsync(msg);
+
+                //generate booking vochure as pdf to send by mail
                 var pdfBytes = await _pdfService.GenerateBookingPdfPOS(model);
                 MailData Mail_Data = new MailData
                 {
@@ -192,13 +302,35 @@ namespace ITravel_App.Controllers
             }
 
         }
+        /// <summary>
+        /// Get user's booking
+        /// </summary>
+
+        /// <returns>booking details</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/GetMyBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetMyBooking")]
         public async Task<IActionResult> GetMyBooking(LangReq req)
         {
             string? clientId = _loginUserData.client_id;
             return Ok(await _clientService.GetMyBooking(req, clientId));
         }
+        /// <summary>
+        ///cancel booking by changing its status
+        /// </summary>
 
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/CancelBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("CancelBooking")]
         public async Task<IActionResult> CancelBooking([FromQuery] long? booking_id)
         {
@@ -207,34 +339,72 @@ namespace ITravel_App.Controllers
         }
 
 
-        [HttpPost("PrintTicket")]
-        public async Task<IActionResult> Print(
-       BookingTicketDto ticket)
-        {
-            await _printer.PrintBookingAsync(ticket);
+        // [HttpPost("PrintTicket")]
+        // public async Task<IActionResult> Print(
+        //BookingTicketDto ticket)
+        // {
+        //     await _printer.PrintBookingAsync(ticket);
 
 
-            return Ok(new
-            {
-                success = true
-            });
-        }
+        //     return Ok(new
+        //     {
+        //         success = true
+        //     });
+        // }
         #endregion
 
 
         #region "Profile"
+
+        /// <summary>
+        /// Get Profile for pecific user (used in admin)
+        /// </summary>
+        /// <param name="clientId">id of the user.</param>
+        /// <returns>Profile Image.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/GetClientProfileImageByAdmin
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetClientProfileImageByAdmin")]
         public async Task<IActionResult> GetClientProfileImageByAdmin([FromQuery] string clientId)
         {
 
             return Ok(await _clientService.GetProfileImage(clientId));
         }
+
+        /// <summary>
+        /// Get Profile for pecific user (used in admin)
+        /// </summary>
+        /// <param name="clientId">id of the user.</param>
+        /// <returns>Profile Details.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/GetClientProfileByAdmin
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetClientProfileByAdmin")]
         public async Task<IActionResult> GetClientProfiles([FromQuery] string clientId)
         {
 
             return Ok(await _clientService.GetClientProfiles(clientId));
         }
+        /// <summary>
+        /// Get Profile for pecific user (used in website , user's id from token)
+        /// </summary>
+        /// <param name="clientId">id of the user.</param>
+        /// <returns>Profile details.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/GetClientProfiles
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetClientProfiles")]
         public async Task<IActionResult> GetClientProfiles()
         {
@@ -243,6 +413,18 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.GetClientProfiles(clientId));
         }
 
+        /// <summary>
+        /// Get Profile image for pecific user (used in website , user's id from token)
+        /// </summary>
+
+        /// <returns>Profile image.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/GetProfileImage
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetProfileImage")]
         public async Task<IActionResult> GetProfileImage()
         {
@@ -250,6 +432,19 @@ namespace ITravel_App.Controllers
             // string? email = _loginUserData.client_email;
             return Ok(await _clientService.GetProfileImage(clientId));
         }
+
+        /// <summary>
+        /// save Profile image for pecific user (used in website , user's id from token)
+        /// </summary>
+
+        /// <returns>Success response.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/saveProfileImage
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("saveProfileImage")]
         public async Task<IActionResult> SaveProfileImage(ImgCls cls)
         {
@@ -275,6 +470,19 @@ namespace ITravel_App.Controllers
 
             return Ok(await _clientService.SaveProfileImage(image));
         }
+
+        /// <summary>
+        /// save Profile for pecific user (used in website , user's id from token)
+        /// </summary>
+
+        /// <returns>Success response.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/SaveMainProfile
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("SaveMainProfile")]
         public IActionResult SaveMainProfile(ClientProfileCast profile)
         {
@@ -287,12 +495,37 @@ namespace ITravel_App.Controllers
             profile.created_by = email;
             return Ok(_clientService.SaveMainProfile(profile));
         }
+
+        /// <summary>
+        /// Get Notification Setting For specific user
+        /// </summary>
+
+        /// <returns>Notification settings list.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/Booking/SaveMainProfile
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetClient_Notification_Settings")]
         public async Task<IActionResult> GetClient_Notification_Settings()
         {
             string? clientId = _loginUserData.client_id;
             return Ok(await _clientService.GetClient_Notification_Settings(clientId));
         }
+        /// <summary>
+        /// save Notification setting for pecific user
+        /// </summary>
+
+        /// <returns>Success response.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/SaveClientNotificationSetting
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("SaveClientNotificationSetting")]
         public IActionResult SaveClientNotificationSetting(client_notification_setting row)
         {

@@ -26,13 +26,35 @@ namespace ITravel_App.Controllers
 
         #region destination
 
-        //get destination tree
+
+        /// <summary>
+        /// get destination tree.
+        /// </summary>
+        /// <returns>Destination List As Tree.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetDestination_Tree
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetDestination_Tree")]
         public IActionResult GetDestination_Tree(DestinationReq req)
         {
             return Ok(_clientService.GetDestination_Tree(req));
         }
-        //get destinations
+
+        /// <summary>
+        /// get destination with specific parent.
+        /// </summary>
+        /// <returns>Destination List.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/getDestinations
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("getDestinations")]
         public async Task<IActionResult> getDestinations(DestinationReq req)
         {
@@ -41,28 +63,75 @@ namespace ITravel_App.Controllers
         }
         #endregion
         #region trips
-        //get main categories for trips
 
+        /// <summary>
+        /// get main categories for trips
+        /// </summary>
+        /// <returns>Trips' categories List.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetTripCategories
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetTripCategories")]
         public async Task<IActionResult> GetTripCategories()
         {
             return Ok(await _clientService.GetTripCategories());
         }
-        //get specific trip details
+
+
+        /// <summary>
+        /// get specific trip details
+        /// </summary>
+        /// <returns>Trip's details.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetTripDetails
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetTripDetails")]
         public async Task<IActionResult> GetTripDetails(TripDetailsReq req)
         {
 
             return Ok(await _clientService.GetTripDetails(req));
         }
-        //get trips and top trips with its details 
+
+        /// <summary>
+        /// get trips (with specific parameters) with its details 
+        /// </summary>
+
+        /// <returns>Trips list.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetTripsAll
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetTripsAll")]
         public async Task<IActionResult> GetTripsAll(TripsReq req)
         {
 
             return Ok(await _clientService.GetTripsAll(req));
         }
-        //get trips which shown in home page slider
+
+
+        /// <summary>
+        /// get trips which shown in home page slider 
+        /// </summary>
+
+        /// <returns>Trips list.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetTripsForSlider
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetTripsForSlider")]
         public async Task<IActionResult> GetTripsForSlider(TripsReq req)
         {
@@ -70,29 +139,92 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.GetTripsForSlider(req));
         }
 
+        /// <summary>
+        /// getPickups points for specific trip
+        /// </summary>
+
+        /// <returns>Pickups list.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetPickupsForTrip
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetPickupsForTrip")]
         public async Task<IActionResult> GetPickupsForTrip(PickupsReq req)
         {
 
             return Ok(await _clientService.GetPickupsForTrip(req));
         }
+
+        /// <summary>
+        /// get reviews on specific trip
+        /// </summary>
+
+        /// <returns>reviews list.</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetClientsReviews
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetClientsReviews")]
         public async Task<IActionResult> GetClientsReviews(ClientsReviewsReq req)
         {
             return Ok(await _clientService.GetClientsReviews(req));
         }
+
+        /// <summary>
+        /// get wishlist count for specific user
+        /// </summary>
+
+        /// <returns>withlist count (number).</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetWishListCount
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetWishListCount")]
         public async Task<IActionResult> GetWishListCount([FromQuery] string? clientId)
         {
             
             return Ok(await _clientService.GetWishListCount(clientId));
         }
+
+        /// <summary>
+        /// get bookings count for specific user
+        /// </summary>
+
+        /// <returns>bookings count (number).</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetMyBookingCount
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetMyBookingCount")]
         public async Task<IActionResult> GetMyBookingCount([FromQuery] string? clientId)
         {
 
             return Ok(await _clientService.GetMyBookingCount(clientId));
         }
+
+        /// <summary>calculate total booking price
+        /// </summary>
+
+        /// <returns>booking price details</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/TravelClient/CalculateBookingPrice
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("CalculateBookingPrice")]
         public IActionResult CalculateBookingPrice(CalculateBookingPriceReq req)
         {
@@ -101,6 +233,19 @@ namespace ITravel_App.Controllers
         #endregion
 
         #region "transfer"
+
+        /// <summary>
+        ///Get List of Transfer Categories
+        /// </summary>
+
+        /// <returns>Transfer Categories List</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetTransferCategoryAll
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
         [HttpPost("GetTransferCategoryAll")]
         public IActionResult GetTransferCategoryAll()
         {
