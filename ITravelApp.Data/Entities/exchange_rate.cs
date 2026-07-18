@@ -14,4 +14,6 @@ public partial class exchange_rate
     public decimal rate { get; set; }
 
     public DateTime created_at { get; set; }
+
+    public string? currency_code { get; set; }
 }

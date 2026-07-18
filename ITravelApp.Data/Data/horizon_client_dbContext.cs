@@ -200,6 +200,7 @@ public partial class horizon_client_dbContext : DbContext
         {
             entity.HasKey(e => e.id).HasName("company_settings_pkey");
 
+            entity.Property(e => e.base_currency_code).HasMaxLength(20);
             entity.Property(e => e.city).HasMaxLength(100);
             entity.Property(e => e.commercial_registration).HasMaxLength(100);
             entity.Property(e => e.company_name).HasMaxLength(200);
@@ -304,6 +305,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.currency_code).HasMaxLength(20);
             entity.Property(e => e.rate).HasPrecision(18, 6);
         });
 

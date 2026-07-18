@@ -15,6 +15,7 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
@@ -26,7 +27,7 @@ namespace ITravelApp.Data
         private readonly IStringLocalizer<Messages> _localizer;
         private readonly horizon_client_dbContext _db;
         private readonly Urls _urls = null;
-        public AdminDAO(horizon_client_dbContext db, IStringLocalizer<Messages> localizer ,IOptions<Urls> options)
+        public AdminDAO(horizon_client_dbContext db, IStringLocalizer<Messages> localizer, IOptions<Urls> options)
         {
             _db = db;
             _localizer = localizer;
@@ -94,13 +95,13 @@ namespace ITravelApp.Data
                 .ToList();
                 return result;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
-           
 
-            
+
+
         }
         //public async Task<List<exchange_rate>> Get_ExchangeRateList()
         //{
@@ -177,28 +178,29 @@ namespace ITravelApp.Data
             var result = await (
                 from er in _db.company_settings
                 where er.id == company_id
-               
+
                 join c in _db.currencies
                     on er.base_currency_id equals c.id
                 select new CompanySettingCls
                 {
                     id = er.id,
-                    base_currency_id= er.base_currency_id,
-                    address= er.address,
-                    city= er.city,
-                    commercial_registration= er.commercial_registration,
-                    company_name= er.company_name,
-                    country= er.country,
-                    email= er.email,
-                    logo_url= er.logo_url,
-                    phone= er.phone,
-                    tax_number= er.tax_number,
-                    trade_name= er.trade_name,
+                    base_currency_id = er.base_currency_id,
+                    base_currency_code=er.base_currency_code,
+                    address = er.address,
+                    city = er.city,
+                    commercial_registration = er.commercial_registration,
+                    company_name = er.company_name,
+                    country = er.country,
+                    email = er.email,
+                    logo_url = er.logo_url,
+                    phone = er.phone,
+                    tax_number = er.tax_number,
+                    trade_name = er.trade_name,
                     currency_name = c.currency_name,
                     currency_code = c.currency_code
                 }
             ).ToListAsync();
-            if(result != null)
+            if (result != null)
             {
                 return result.FirstOrDefault();
             }
@@ -259,19 +261,19 @@ namespace ITravelApp.Data
                 var today = DateOnly.FromDateTime(DateTime.Today);
                 //var today = DateTime.Now;
                 Console.WriteLine($"Today: {today:yyyy-MM-dd}");
-               
+
                 foreach (var row in lst)
                 {
-                   // var dbRow = _db.exchange_rates
-                   //.Where(x => x.currency_id == row.currency_id)
-                   //.FirstOrDefault();
+                    // var dbRow = _db.exchange_rates
+                    //.Where(x => x.currency_id == row.currency_id)
+                    //.FirstOrDefault();
 
-                   // if (dbRow != null)
-                   // {
-                   //     Console.WriteLine($"DB Date: {dbRow.effective_date:yyyy-MM-dd}");
-                   // }
+                    // if (dbRow != null)
+                    // {
+                    //     Console.WriteLine($"DB Date: {dbRow.effective_date:yyyy-MM-dd}");
+                    // }
                     //row.effective_date = today;
-                    
+
                     row.created_at = DateTime.Now;
                     var result = _db.exchange_rates.Where(wr => wr.currency_id == row.currency_id && wr.effective_date == row.effective_date).SingleOrDefault();
                     if (result != null)
@@ -286,7 +288,7 @@ namespace ITravelApp.Data
                     else
                     {
                         //save
-                       
+
                         //if (_db.exchange_rates.Count() > 0)
                         //{
                         //    maxId = _db.exchange_rates.Max(d => d.id);
@@ -296,7 +298,7 @@ namespace ITravelApp.Data
                         _db.exchange_rates.Add(row);
                         _db.SaveChanges();
                     }
-                   
+
                     count++;
                 }
                 if (count == lst.Count)
@@ -357,7 +359,7 @@ namespace ITravelApp.Data
         //        }
 
         //        await _db.SaveChangesAsync();
-               
+
 
         //        return new ResponseCls
         //        {
@@ -383,7 +385,7 @@ namespace ITravelApp.Data
             int maxId = 0;
             var msg = _localizer["DuplicateData"];
             try
-            { 
+            {
                 if (row.id == 0)
                 {
                     //check duplicate order (in add new row)
@@ -466,7 +468,7 @@ namespace ITravelApp.Data
                     _db.SaveChanges();
                 }
 
-                response = new ResponseCls { errors = null, success = true};
+                response = new ResponseCls { errors = null, success = true };
             }
 
             catch (Exception ex)
@@ -511,9 +513,9 @@ namespace ITravelApp.Data
                     }
                     count++;
 
-                    
+
                 }
-                if(count == lst.Count)
+                if (count == lst.Count)
                 {
                     response = new ResponseCls { errors = null, success = true };
                 }
@@ -562,8 +564,8 @@ namespace ITravelApp.Data
                         leaf = dest.leaf,
                         parent_id = dest.parent_id,
                         parent_name = PARDEST != null ? PARDEST.dest_default_name : null,
-                        order=dest.order,
-                       // parent_order = PARDEST != null ? PARDEST.order : 0,
+                        order = dest.order,
+                        // parent_order = PARDEST != null ? PARDEST.order : 0,
                     };
 
                 //var result = from trans in _db.destination_translations.Where(wr => wr.active == true)
@@ -584,7 +586,7 @@ namespace ITravelApp.Data
                 //                 dest_default_name= dest.dest_default_name    ,
                 //                 route=dest.route
                 //             };
-             
+
                 return result.ToList().GroupBy(grp => new
                 {
                     grp.dest_code,
@@ -608,14 +610,14 @@ namespace ITravelApp.Data
                     dest_default_name = s.Key.dest_default_name,
                     route = s.Key.route,
                     active = s.Key.active,
-                    parent_id=s.Key.parent_id,
-                    parent_name=s.Key.parent_name,
-                    leaf=s.Key.leaf,
+                    parent_id = s.Key.parent_id,
+                    parent_name = s.Key.parent_name,
+                    leaf = s.Key.leaf,
                     order = s.Key.order,
                     translations = result.Where(wr => wr.dest_code == s.Key.dest_code).ToList()
 
                 }).ToList();
-               
+
             }
             catch (Exception ex)
             {
@@ -629,16 +631,16 @@ namespace ITravelApp.Data
             {
                 return await _db.destination_imgs.Where(wr => wr.destination_id == destination_id)
                     .OrderBy(o => o.id).Select(s => new destination_img
-                                                {
-                                                    id = s.id,
-                                                    img_height = s.img_height,
-                                                    img_name = s.img_name,
-                                                    img_path = _urls.BaseUrl + s.img_path,
-                                                    img_resize_path = _urls.BaseUrl + s.img_resize_path,
-                                                    img_width = s.img_width,
-                                                    is_default = s.is_default,
-                                                    destination_id = s.destination_id,
-                                                }).ToListAsync();
+                    {
+                        id = s.id,
+                        img_height = s.img_height,
+                        img_name = s.img_name,
+                        img_path = _urls.BaseUrl + s.img_path,
+                        img_resize_path = _urls.BaseUrl + s.img_resize_path,
+                        img_width = s.img_width,
+                        is_default = s.is_default,
+                        destination_id = s.destination_id,
+                    }).ToListAsync();
                 //return await _db.destination_imgs.Where(wr => wr.destination_id == destination_id)
                 //    .OrderBy(o => o.id)
                 //    .ToListAsync();
@@ -742,7 +744,7 @@ namespace ITravelApp.Data
                         maxId = _db.trip_mains.Max(d => d.id);
 
                     }
-                    
+
                     row.id = maxId + 1;
                     row.trip_order = _db.trip_mains.Max(d => d.trip_order) + 1;
                     row.trip_code_auto = "TRIP_" + row.id.ToString();
@@ -832,7 +834,125 @@ namespace ITravelApp.Data
             }
             return response;
         }
+        private void GenerateOtherCurrenciesForChildPolicy(
+    child_policy_setting basePrice,
+    List<exchange_rate> rates,
+    string baseCurrency)
+        {
+            foreach (var rate in rates)
+            {
+                if (rate.currency_code == baseCurrency)
+                    continue;
 
+                decimal factor = rate.rate;
+
+                var price = _db.child_policy_settings.FirstOrDefault(x =>
+                    x.trip_id == basePrice.trip_id &&
+                    x.currency_code == rate.currency_code &&
+                    x.age_from == basePrice.age_from &&
+                    x.age_to == basePrice.age_to);
+
+                if (price == null)
+                {
+                    int newId = _db.child_policy_settings.Any()
+                        ? _db.child_policy_settings.Max(x => x.policy_id) + 1
+                        : 1;
+
+                    price = new child_policy_setting
+                    {
+                        policy_id = newId,
+                        trip_id = basePrice.trip_id,
+                        currency_code = rate.currency_code,
+                        age_from = basePrice.age_from,
+                        age_to = basePrice.age_to,
+                        pricing_type = basePrice.pricing_type,
+                        notes = basePrice.notes,
+                        created_by = basePrice.created_by,
+                        code_auto= "CHDPO_" + newId
+                    };
+                    price.child_price = basePrice.child_price.HasValue
+                  ? Math.Round(basePrice.child_price.Value * factor, 2)
+                  : null;
+
+                    price.updated_at = DateTime.Now;
+                    _db.child_policy_settings.Add(price);
+                    _db.SaveChanges();
+                }
+
+               
+
+              
+            }
+
+            
+        }
+        //save Other currencies for trips
+        private bool GenerateOtherCurrenciesForTripPrice(
+    trip_price basePrice,
+    List<exchange_rate> rates,
+    string baseCurrency)
+        {
+            try { 
+            foreach (var rate in rates)
+            {
+                if (rate.currency_code == baseCurrency)
+                    continue;
+
+                decimal factor = rate.rate;
+
+                var price = _db.trip_prices.FirstOrDefault(x =>
+                    x.trip_id == basePrice.trip_id &&
+                    x.currency_code == rate.currency_code &&
+                    x.pax_from == basePrice.pax_from &&
+                    x.pax_to == basePrice.pax_to);
+
+                if (price == null)
+                {
+                    long newId = _db.trip_prices.Any()
+                        ? _db.trip_prices.Max(x => x.id) + 1
+                        : 1;
+
+                    price = new trip_price
+                    {
+                        id = newId,
+                        trip_id = basePrice.trip_id,
+                        currency_code = rate.currency_code,
+                        pax_from = basePrice.pax_from,
+                        pax_to = basePrice.pax_to,
+                        pricing_type = basePrice.pricing_type,
+                        notes = basePrice.notes,
+                        created_by = basePrice.created_by
+                    };
+                        price.trip_origin_price = basePrice.trip_origin_price.HasValue
+                          ? Math.Round(basePrice.trip_origin_price.Value * factor, 2)
+                          : null;
+
+                        price.trip_sale_price = basePrice.trip_sale_price.HasValue
+                            ? Math.Round(basePrice.trip_sale_price.Value * factor, 2)
+                            : null;
+
+                        price.child_price = basePrice.child_price.HasValue
+                            ? Math.Round(basePrice.child_price.Value * factor, 2)
+                            : null;
+
+                        price.updated_at = DateTime.Now;
+                        _db.trip_prices.Add(price);
+
+                        _db.SaveChanges();
+                    }
+
+            
+                    
+                }
+
+          
+                return true;
+        }
+        catch(Exception ex)
+        {
+                return false;
+        }
+        }
         //assign prices with different currency to trips
         public ResponseCls SaveTripPrices(TripPricesReq row)
         {
@@ -848,15 +968,23 @@ namespace ITravelApp.Data
                     trip_origin_price = row.trip_origin_price,
                     trip_sale_price = row.trip_sale_price,
                     created_by = row.created_by,
-                    notes=row.notes,
-                    child_price=row.child_price,
-                    pax_from=row.pax_from,
-                    pax_to=row.pax_to,
-                    pricing_type=row.pricing_type
+                    notes = row.notes,
+                    child_price = row.child_price,
+                    pax_from = row.pax_from,
+                    pax_to = row.pax_to,
+                    pricing_type = row.pricing_type
                 };
                 if (row.delete == true)
                 {
-                    _db.Remove(price);
+                    //_db.Remove(price);
+                    //_db.SaveChanges();
+                    var prices = _db.trip_prices.Where(x =>
+                               x.trip_id == row.trip_id &&
+                               x.pax_from == row.pax_from &&
+                               x.pax_to == row.pax_to);
+
+                    _db.trip_prices.RemoveRange(prices);
+
                     _db.SaveChanges();
                     return new ResponseCls { errors = null, success = true };
                 }
@@ -883,7 +1011,14 @@ namespace ITravelApp.Data
                     _db.trip_prices.Update(price);
                     _db.SaveChanges();
                 }
+                string? baseCurrency = _db.company_settings.FirstOrDefault()?.base_currency_code; // get from company_settings
 
+                var rates = _db.exchange_rates
+                               .Where(x => x.effective_date == DateOnly.FromDateTime(DateTime.Today))
+                               .ToList();
+
+                //start save other currencies automatic
+                GenerateOtherCurrenciesForTripPrice(price, rates, baseCurrency);
                 response = new ResponseCls { errors = null, success = true, idOut = price.id };
             }
             catch (Exception ex)
@@ -905,10 +1040,10 @@ namespace ITravelApp.Data
                     trip_id = cls.trip_id,
                     is_default = cls.is_default,
                     img_name = cls.img_name,
-                    img_path =cls.img_path,
-                    created_by= cls.created_by,
-                    trip_type=cls.trip_type,
-                    img_order=cls.img_order
+                    img_path = cls.img_path,
+                    created_by = cls.created_by,
+                    trip_type = cls.trip_type,
+                    img_order = cls.img_order
                 };
                 if (cls.delete == true)
                 {
@@ -932,7 +1067,7 @@ namespace ITravelApp.Data
                         _db.trip_imgs.Update(result);
                         _db.SaveChanges();
                     }
-                   
+
                 }
                 var row = _db.trip_imgs.Where(wr => wr.id == trip.id).SingleOrDefault();
                 if (row != null)
@@ -942,10 +1077,10 @@ namespace ITravelApp.Data
                     _db.trip_imgs.Update(row);
                     _db.SaveChanges();
                 }
-                response = new ResponseCls { errors = null, success = true }; 
-                
-               
-               
+                response = new ResponseCls { errors = null, success = true };
+
+
+
             }
             catch (Exception ex)
             {
@@ -960,7 +1095,8 @@ namespace ITravelApp.Data
             int count = 0;
             try
             {
-                foreach (var trip in lst) {
+                foreach (var trip in lst)
+                {
                     if (trip.id == 0)
                     {
                         //check duplicate order (in add new row)
@@ -1183,7 +1319,7 @@ namespace ITravelApp.Data
                     active = row.active,
                     trip_id = row.trip_id,
                     created_by = row.created_by,
-                    trip_type=row.trip_type
+                    trip_type = row.trip_type
                 };
                 if (row.selected == false && row.id > 0)
                 {
@@ -1251,7 +1387,7 @@ namespace ITravelApp.Data
                     _db.SaveChanges();
                     //check if there are translations for this row and delete all also
                     var transList = _db.trip_pickups_translations.Where(wr => wr.trip_pickup_id == pickup.id).ToList();
-                    if(transList.Count > 0)
+                    if (transList.Count > 0)
                     {
                         _db.RemoveRange(transList);
                         _db.SaveChanges();
@@ -1305,22 +1441,22 @@ namespace ITravelApp.Data
                    from combined in FM_FT.DefaultIfEmpty()
                    select new FacilityWithTranslation
                    {
-                       facility_id=FM.id,
-                       id= combined != null ? combined.id : 0,
-                       facility_code=FM.facility_code,
+                       facility_id = FM.id,
+                       id = combined != null ? combined.id : 0,
+                       facility_code = FM.facility_code,
                        facility_default_name = FM.facility_default_name,
-                       facility_desc= combined != null ? combined.facility_desc : null,
-                       facility_name= combined != null ? combined.facility_name : null,
-                       lang_code= combined != null ? combined.lang_code : null,
-                       active=FM.active,
+                       facility_desc = combined != null ? combined.facility_desc : null,
+                       facility_name = combined != null ? combined.facility_name : null,
+                       lang_code = combined != null ? combined.lang_code : null,
+                       active = FM.active,
                        currency_code = FM.currency_code,
-                       extra_price= FM.extra_price,
-                       is_obligatory= FM.is_obligatory,
-                       pricing_type=FM.pricing_type,
-                       is_extra= FM.is_extra
+                       extra_price = FM.extra_price,
+                       is_obligatory = FM.is_obligatory,
+                       pricing_type = FM.pricing_type,
+                       is_extra = FM.is_extra
 
                    };
-               return  result.ToList().GroupBy(grp => new
+                return result.ToList().GroupBy(grp => new
                 {
                     grp.facility_id,
                     grp.facility_default_name,
@@ -1333,20 +1469,21 @@ namespace ITravelApp.Data
                     grp.is_obligatory
                 }).Select(s => new FacilityWithTranslationGrp
                 {
-                    facility_code=s.Key.facility_code,
-                    facility_default_name=s.Key.facility_default_name,
-                    facility_id=s.Key.facility_id,
-                    active=s.Key.active,
-                    currency_code=s.Key.currency_code,
-                    extra_price=s.Key.extra_price,
-                    is_extra=s.Key.is_extra,
-                    is_obligatory=s.Key.is_obligatory,
-                    pricing_type=s.Key.pricing_type,
-                    translations=result.ToList().Where(wr => wr.facility_id == s.Key.facility_id && wr.id !=0).ToList()
+                    facility_code = s.Key.facility_code,
+                    facility_default_name = s.Key.facility_default_name,
+                    facility_id = s.Key.facility_id,
+                    active = s.Key.active,
+                    currency_code = s.Key.currency_code,
+                    extra_price = s.Key.extra_price,
+                    is_extra = s.Key.is_extra,
+                    is_obligatory = s.Key.is_obligatory,
+                    pricing_type = s.Key.pricing_type,
+                    translations = result.ToList().Where(wr => wr.facility_id == s.Key.facility_id && wr.id != 0).ToList()
 
                 }).OrderBy(x => x.facility_id).ToList();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return null;
             }
 
@@ -1372,7 +1509,7 @@ namespace ITravelApp.Data
                        fac_trip_id = combined != null ? combined.id : 0,
                        pricing_type = FM.pricing_type,
                        extra_price = FM.extra_price,
-                       is_obligatory= FM.is_obligatory,
+                       is_obligatory = FM.is_obligatory,
                        selected = combined != null && combined.id > 0 ? true : false
                    };
                 return result.ToList();
@@ -1439,14 +1576,14 @@ namespace ITravelApp.Data
             return response;
         }
 
-        public async Task<List<TripMainCast>> GetTrip_Mains(int destination_id,int trip_type)
+        public async Task<List<TripMainCast>> GetTrip_Mains(int destination_id, int trip_type)
         {
             try
             {
-                return await _db.trip_mains.Where(wr => wr.destination_id == (destination_id == 0 ? wr.destination_id : destination_id) && wr.trip_type ==(trip_type == 0 ? wr.trip_type : trip_type))
+                return await _db.trip_mains.Where(wr => wr.destination_id == (destination_id == 0 ? wr.destination_id : destination_id) && wr.trip_type == (trip_type == 0 ? wr.trip_type : trip_type))
                       .Join(_db.destination_mains,
                               TRIP => new { TRIP.destination_id },
-                              DEST => new { destination_id = (int?) DEST.id },
+                              DEST => new { destination_id = (int?)DEST.id },
                               (TRIP, DEST) => new TripMainCast
                               {
                                   destination_id = TRIP.destination_id,
@@ -1463,11 +1600,11 @@ namespace ITravelApp.Data
                                   dest_code = DEST.dest_code,
                                   dest_default_name = DEST.dest_default_name,
                                   trip_type = TRIP.trip_type,
-                                  transfer_category_id=TRIP.transfer_category_id,
-                                  trip_code_auto= TRIP.trip_code_auto,
-                                  release_days= TRIP.release_days,
-                                  trip_order=TRIP.trip_order,
-                                  is_comm_soon=TRIP.is_comm_soon
+                                  transfer_category_id = TRIP.transfer_category_id,
+                                  trip_code_auto = TRIP.trip_code_auto,
+                                  release_days = TRIP.release_days,
+                                  trip_order = TRIP.trip_order,
+                                  is_comm_soon = TRIP.is_comm_soon
                               }).OrderBy(d => d.id).ToListAsync();
 
 
@@ -1489,9 +1626,10 @@ namespace ITravelApp.Data
                 foreach (var item in langs)
                 {
                     TripTranslationGrp row = new TripTranslationGrp { lang_code = item.lang_code.ToLower(), translation = result.ToList().Where(wr => wr.lang_code.ToLower() == item.lang_code.ToLower()).SingleOrDefault() };
-                     translations.Add(row);
+                    translations.Add(row);
 
-                    };
+                }
+                ;
                 //List<TripTranslationGrp> translations = new List<TripTranslationGrp>
                 //{
                 //    new TripTranslationGrp { lang_code = "en", translation = result.ToList().Where(wr => wr.lang_code == "en").SingleOrDefault() },
@@ -1528,27 +1666,28 @@ namespace ITravelApp.Data
                 return null;
             }
         }
-        
+
         public async Task<List<trip_price>> GetTrip_Prices(long? trip_id)
         {
             try
             {
                 return await _db.trip_prices.Where(wr => wr.trip_id == trip_id).ToListAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
 
         }
-        
+
         public async Task<List<trip_pickups_main>> GetTrip_Pickups_Mains(long? trip_id)
         {
             try
             {
-                return await _db.trip_pickups_mains.Where(wr => wr.trip_id==trip_id).ToListAsync();
+                return await _db.trip_pickups_mains.Where(wr => wr.trip_id == trip_id).ToListAsync();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return null;
             }
         }
@@ -1572,12 +1711,12 @@ namespace ITravelApp.Data
                         order = PM.order,
                         pickup_code = PM.pickup_code,
                         pickup_default_name = PM.pickup_default_name,
-                        pickup_description = combined !=null ? combined.pickup_description : null,
-                        pickup_name = combined != null ?  combined.pickup_name : null,
+                        pickup_description = combined != null ? combined.pickup_description : null,
+                        pickup_name = combined != null ? combined.pickup_name : null,
                         trip_id = PM.trip_id,
                         trip_type = PM.trip_type,
                         duration = PM.duration,
-                        id= combined != null ? combined.id : 0
+                        id = combined != null ? combined.id : 0
                     };
                 //var result = await _db.trip_pickups_mains.Where(wr => wr.trip_id == req.trip_id && wr.trip_type == req.trip_type)
                 //                   .Join(_db.trip_pickups_translations,
@@ -1609,17 +1748,17 @@ namespace ITravelApp.Data
                     grp.trip_type
                 }).Select(s => new TripsPickupResponseGrp
                 {
-                    trip_pickup_id=s.Key.trip_pickup_id,
-                    trip_id=s.Key.trip_id,
-                    order=s.Key.order,
+                    trip_pickup_id = s.Key.trip_pickup_id,
+                    trip_id = s.Key.trip_id,
+                    order = s.Key.order,
                     pickup_default_name = s.Key.pickup_default_name,
-                    pickup_code= s.Key.pickup_code,
-                    trip_type=s.Key.trip_type,
-                    duration=s.Key.duration,
-                    translations =result.ToList().Where(wr => wr.trip_pickup_id == s.Key.trip_pickup_id && wr.lang_code !=null).ToList()
+                    pickup_code = s.Key.pickup_code,
+                    trip_type = s.Key.trip_type,
+                    duration = s.Key.duration,
+                    translations = result.ToList().Where(wr => wr.trip_pickup_id == s.Key.trip_pickup_id && wr.lang_code != null).ToList()
 
                 }).ToList();
-               
+
             }
             catch (Exception ex)
             {
@@ -1662,7 +1801,7 @@ namespace ITravelApp.Data
 
         }
 
-        //assign prices with different currency to trips
+        //save Child Policy Prices for Specific trip
         public ResponseCls SaveTripChildPolicy(ChildPolicyPricesReq row)
         {
             ResponseCls response;
@@ -1671,22 +1810,30 @@ namespace ITravelApp.Data
             {
                 child_policy_setting price = new child_policy_setting
                 {
-                    
-                     created_by = row.created_by,
-                     notes = row.notes,
-                     child_price = row.child_price,
-                      age_from=row.age_from,
-                      age_to=row.age_to,
-                      policy_id=row.policy_id,
-                      pricing_type=row.pricing_type,
-                      trip_id=row.trip_id,
-                      code_auto=row.code_auto,
-                      currency_code=row.currency_code,
-                      
+
+                    created_by = row.created_by,
+                    notes = row.notes,
+                    child_price = row.child_price,
+                    age_from = row.age_from,
+                    age_to = row.age_to,
+                    policy_id = row.policy_id,
+                    pricing_type = row.pricing_type,
+                    trip_id = row.trip_id,
+                    code_auto = row.code_auto,
+                    currency_code = row.currency_code,
+
                 };
                 if (row.delete == true)
                 {
-                    _db.Remove(price);
+                    //_db.Remove(price);
+                    //_db.SaveChanges();
+                    var prices = _db.child_policy_settings.Where(x =>
+                                   x.trip_id == row.trip_id &&
+                                   x.age_from == row.age_from &&
+                                   x.age_to == row.age_to);
+
+                    _db.child_policy_settings.RemoveRange(prices);
+
                     _db.SaveChanges();
                     return new ResponseCls { errors = null, success = true };
                 }
@@ -1705,7 +1852,7 @@ namespace ITravelApp.Data
                     }
                     price.created_at = DateTime.Now;
                     price.policy_id = maxId + 1;
-                    price.code_auto = "CHDPO_"+price.policy_id;
+                    price.code_auto = "CHDPO_" + price.policy_id;
                     _db.child_policy_settings.Add(price);
                     _db.SaveChanges();
                 }
@@ -1715,7 +1862,14 @@ namespace ITravelApp.Data
                     _db.child_policy_settings.Update(price);
                     _db.SaveChanges();
                 }
+                //string? baseCurrency = _db.company_settings.FirstOrDefault()?.base_currency_code; // get from company_settings
 
+                //var rates = _db.exchange_rates
+                //               .Where(x => x.effective_date == DateOnly.FromDateTime(DateTime.Today))
+                //               .ToList();
+
+                //start save other currencies automatic
+               // GenerateOtherCurrenciesForChildPolicy(price, rates, baseCurrency);
                 response = new ResponseCls { errors = null, success = true, idOut = price.policy_id };
             }
             catch (Exception ex)
@@ -1733,7 +1887,8 @@ namespace ITravelApp.Data
             try
             {
                 return await _db.transfer_categories.ToListAsync();
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return new List<transfer_category>();
             }
@@ -1748,16 +1903,16 @@ namespace ITravelApp.Data
                 transfer_category transfer = new transfer_category
                 {
                     id = row.id,
-                   category_code=row.category_code,
-                   category_name=row.category_name,
-                   currency_code=row.currency_code,
-                   created_by=row.created_by,
-                   max_capacity= row.max_capacity,
-                   max_price= row.max_price,
-                   min_capacity= row.min_capacity,
-                   min_price=row.min_price,
-                   child_price=row.child_price,
-                   notes=row.notes
+                    category_code = row.category_code,
+                    category_name = row.category_name,
+                    currency_code = row.currency_code,
+                    created_by = row.created_by,
+                    max_capacity = row.max_capacity,
+                    max_price = row.max_price,
+                    min_capacity = row.min_capacity,
+                    min_price = row.min_price,
+                    child_price = row.child_price,
+                    notes = row.notes
 
                 };
                 if (row.delete == true)
@@ -1799,7 +1954,7 @@ namespace ITravelApp.Data
             }
             return response;
         }
-        
+
         //get images list for specific transfer
         public async Task<List<transfer_img>> GetImgsByTransfer(decimal? category_id)
         {
@@ -1957,12 +2112,12 @@ namespace ITravelApp.Data
                                                            wr.booking_code == (string.IsNullOrEmpty(req.booking_code) ? wr.booking_code : req.booking_code) &&
                                                             (wr.trip_date >= dateFrom && wr.trip_date <= dateTo)
                                                           ).CountAsync();
-            var result= await _db.bookingwithdetails.Where(
+            var result = await _db.bookingwithdetails.Where(
                                                            wr => wr.lang_code == "en" &&
                                                            wr.trip_id == (req.trip_id == 0 ? wr.trip_id : req.trip_id) &&
-                                                           wr.client_email == (string.IsNullOrEmpty(req.client_email) ? wr.client_email : req.client_email ) &&
+                                                           wr.client_email == (string.IsNullOrEmpty(req.client_email) ? wr.client_email : req.client_email) &&
                                                            wr.booking_code == (string.IsNullOrEmpty(req.booking_code) ? wr.booking_code : req.booking_code) &&
-                                                            (wr.trip_date >= dateFrom && wr.trip_date <= dateTo) 
+                                                            (wr.trip_date >= dateFrom && wr.trip_date <= dateTo)
                                                           )
                                                      .Skip((req.pageNumber - 1) * req.pageSize)
                                              .Take(req.pageSize).ToListAsync();

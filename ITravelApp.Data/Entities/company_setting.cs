@@ -33,5 +33,7 @@ public partial class company_setting
 
     public DateTime? updated_at { get; set; }
 
+    public string? base_currency_code { get; set; }
+
     public virtual currency base_currency { get; set; } = null!;
 }
