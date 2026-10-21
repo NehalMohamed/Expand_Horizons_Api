@@ -338,7 +338,23 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.CancelBooking(booking_id, clientId));
         }
 
+        /// <summary>
+        ///Pay booking by changing its status
+        /// </summary>
 
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        /// /api/Booking/PayBooking
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        [HttpPost("PayBooking")]
+        public async Task<IActionResult> PayBooking([FromQuery] long? booking_id, [FromQuery] string? clientId)
+        {
+           // string? clientId = _loginUserData.client_id;
+            return Ok(await _clientService.PayBooking(booking_id, clientId));
+        }
         // [HttpPost("PrintTicket")]
         // public async Task<IActionResult> Print(
         //BookingTicketDto ticket)
@@ -352,8 +368,14 @@ namespace ITravel_App.Controllers
         //     });
         // }
         #endregion
+        #region "POS"
 
-
+        [HttpPost("ConvertCurrency")]
+        public IActionResult ConvertCurrency([FromQuery] decimal amount, [FromQuery] string toCurr)
+        {
+            return Ok(_clientService.ConvertCurrency(amount, toCurr));
+        }
+        #endregion
         #region "Profile"
 
         /// <summary>

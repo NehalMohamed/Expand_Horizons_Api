@@ -2,6 +2,7 @@
 using ITravel_App.Models;
 using ITravel_App.services;
 using ITravel_App.Services;
+using ITravel_App.Services.ExcelService;
 using ITravel_App.Services.POSService;
 using ITravel_App.Services.POSService.YourProject.Services.POS;
 using ITravel_App.Services.PrinterService;
@@ -111,7 +112,8 @@ builder.Services.AddScoped<IPrinterService,
                            PrinterService>();
 builder.Services.Configure<PosSettings>(
     builder.Configuration.GetSection("PosSettings"));
-
+builder.Services.AddScoped<TripExcelImportService>();
+builder.Services.AddScoped<TripImportRepository>();
 builder.Services.AddSingleton<IPosCommunicationService, PosCommunicationService>();
 builder.Services.AddTransient<IMailService, MailService>();
 builder.Services.AddAuthentication()

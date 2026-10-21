@@ -57,6 +57,11 @@ namespace ITravel_App.Services
             return await _clientDAO.ConfirmBookingPOS(req);
         }
 
+        public decimal ConvertCurrency(decimal amount, string toCurr)
+        {
+            return  _clientDAO.ConvertCurrency(amount, toCurr);
+        }
+
         public Task<BookingSummary> GetBookingWithDetails(BookingReq req)
         {
             return _clientDAO.GetBookingWithDetails(req);
@@ -85,6 +90,11 @@ namespace ITravel_App.Services
         public async Task<List<destinationwithdetail>> getDestinations(DestinationReq req)
         {
             return await _clientDAO.getDestinations(req);
+        }
+
+        public List<DestinationWithTypes> GetDestinationsWithTypes(string lang)
+        {
+            return  _clientDAO.GetDestinationsWithTypes(lang);
         }
 
         public List<DestinationTree> GetDestination_Tree(DestinationReq req)
@@ -150,6 +160,11 @@ namespace ITravel_App.Services
         public Task<int> GetWishListCount(string client_id)
         {
             return _clientDAO.GetWishListCount(client_id);
+        }
+
+        public Task<ResponseCls> PayBooking(long? booking_id, string? client_id)
+        {
+            return _clientDAO.PayBooking(booking_id, client_id);
         }
 
         public ResponseCls SaveClientBooking(BookingCls row)

@@ -1,12 +1,10 @@
-﻿namespace ITravel_App.Services.POSService
+﻿using ITravel_App.Models.POS;
+
+namespace ITravel_App.Services.POSService
 {
     public interface IPosCommunicationService
     {
-        Task<string> SendAsync(string xml);
-        Task<string> ConnectionTestAsync();
-
-      
-
-        bool IsConnected();
-    }
+        Task<PosPaymentResponse> ProcessPaymentAsync(
+            PosPaymentRequest request);
+} 
 }

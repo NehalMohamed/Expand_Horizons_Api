@@ -16,6 +16,8 @@ public partial class horizon_client_dbContext : DbContext
     {
     }
 
+    public virtual DbSet<DestinationTripType> DestinationTripTypes { get; set; }
+
     public virtual DbSet<booking_extra> booking_extras { get; set; }
 
     public virtual DbSet<bookingwithdetail> bookingwithdetails { get; set; }
@@ -39,6 +41,8 @@ public partial class horizon_client_dbContext : DbContext
     public virtual DbSet<destination_translation> destination_translations { get; set; }
 
     public virtual DbSet<destinationwithdetail> destinationwithdetails { get; set; }
+
+    public virtual DbSet<destinationwithtriptype> destinationwithtriptypes { get; set; }
 
     public virtual DbSet<exchange_rate> exchange_rates { get; set; }
 
@@ -72,6 +76,8 @@ public partial class horizon_client_dbContext : DbContext
 
     public virtual DbSet<trip_translation> trip_translations { get; set; }
 
+    public virtual DbSet<trip_type> trip_types { get; set; }
+
     public virtual DbSet<trips_booking> trips_bookings { get; set; }
 
     public virtual DbSet<trips_wishlist> trips_wishlists { get; set; }
@@ -84,6 +90,16 @@ public partial class horizon_client_dbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<DestinationTripType>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("DestinationTripTypes_pkey");
+
+            entity.HasIndex(e => new { e.DestinationId, e.TripCategoryId, e.TripTypeId }, "UQ_DestinationTripTypes").IsUnique();
+
+            entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<booking_extra>(entity =>
         {
             entity.HasKey(e => e.id).HasName("booking_extra_pkey");
@@ -296,6 +312,21 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.route).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<destinationwithtriptype>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("destinationwithtriptype");
+
+            entity.Property(e => e.country_code).HasMaxLength(20);
+            entity.Property(e => e.dest_code).HasMaxLength(20);
+            entity.Property(e => e.dest_name).HasMaxLength(50);
+            entity.Property(e => e.lang_code).HasMaxLength(20);
+            entity.Property(e => e.route).HasMaxLength(100);
+            entity.Property(e => e.type_code).HasColumnType("character varying");
+            entity.Property(e => e.type_name).HasColumnType("character varying");
+        });
+
         modelBuilder.Entity<exchange_rate>(entity =>
         {
             entity.HasKey(e => e.id).HasName("exchange_rates_pkey");
@@ -420,8 +451,8 @@ public partial class horizon_client_dbContext : DbContext
             entity.ToTable("trip_category");
 
             entity.Property(e => e.id).HasDefaultValueSql("nextval('trip_categories_id_seq'::regclass)");
-            entity.Property(e => e.type_code).HasMaxLength(50);
-            entity.Property(e => e.type_name).HasMaxLength(100);
+            entity.Property(e => e.category_code).HasMaxLength(50);
+            entity.Property(e => e.category_name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<trip_facility>(entity =>
@@ -469,6 +500,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.release_days).HasDefaultValue(1);
             entity.Property(e => e.route).HasMaxLength(100);
             entity.Property(e => e.transfer_category_id).HasDefaultValue(0);
+            entity.Property(e => e.trip_cat).HasDefaultValue(1);
             entity.Property(e => e.trip_code).HasMaxLength(20);
             entity.Property(e => e.trip_code_auto).HasMaxLength(20);
             entity.Property(e => e.trip_default_name).HasMaxLength(50);
@@ -549,6 +581,19 @@ public partial class horizon_client_dbContext : DbContext
                 .HasColumnType("timestamp without time zone");
         });
 
+        modelBuilder.Entity<trip_type>(entity =>
+        {
+            entity.HasKey(e => e.id).HasName("trip_types_pkey");
+
+            entity.Property(e => e.id).ValueGeneratedNever();
+            entity.Property(e => e.type_code)
+                .HasDefaultValueSql("20")
+                .HasColumnType("character varying");
+            entity.Property(e => e.type_name)
+                .HasDefaultValueSql("50")
+                .HasColumnType("character varying");
+        });
+
         modelBuilder.Entity<trips_booking>(entity =>
         {
             entity.HasKey(e => e.id).HasName("trips_booking_pkey");
@@ -558,7 +603,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.booking_code).HasMaxLength(50);
             entity.Property(e => e.booking_code_auto).HasMaxLength(20);
             entity.Property(e => e.booking_date).HasColumnType("timestamp without time zone");
-            entity.Property(e => e.booking_status).HasComment("1 = requested\n2 = confirmed\n3 = canceled");
+            entity.Property(e => e.booking_status).HasComment("1 = requested\n2 = confirmed\n3 = canceled\n4 = payed");
             entity.Property(e => e.child_ages).HasMaxLength(50);
             entity.Property(e => e.client_email).HasMaxLength(100);
             entity.Property(e => e.client_id).HasMaxLength(100);
@@ -613,6 +658,7 @@ public partial class horizon_client_dbContext : DbContext
             entity.Property(e => e.trip_default_name).HasMaxLength(50);
             entity.Property(e => e.trip_duration).HasMaxLength(20);
             entity.Property(e => e.trip_name).HasMaxLength(50);
+            entity.Property(e => e.trip_type_name).HasColumnType("character varying");
         });
         modelBuilder.HasSequence("exchange_rates_id_seq");
         modelBuilder.HasSequence("transfer_imgs_id_seq");

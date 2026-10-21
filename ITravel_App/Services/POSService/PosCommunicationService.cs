@@ -5,8 +5,11 @@ using System.Text;
 
 namespace ITravel_App.Services.POSService
 {
+    using ITravel_App.Models.POS;
+    using System.Diagnostics;
     using System.IO.Ports;
     using System.Text;
+    using System.Xml.Serialization;
 
     namespace YourProject.Services.POS
     {
@@ -22,7 +25,7 @@ namespace ITravel_App.Services.POSService
             {
                 _logger = logger;
 
-                string portName = configuration["PosSettings:PortName"] ?? "COM3";
+                string portName = configuration["PosSettings:PortName"] ?? "COM4";
                 int baudRate = int.Parse(configuration["PosSettings:BaudRate"] ?? "9600");
 
                 _serialPort = new SerialPort
@@ -32,9 +35,12 @@ namespace ITravel_App.Services.POSService
                     DataBits = 8,
                     Parity = Parity.None,
                     StopBits = StopBits.One,
-                    Encoding = Encoding.UTF8,
+                    Encoding = Encoding.ASCII,
                     ReadTimeout = 120000,
                     WriteTimeout = 10000
+                    //ReadTimeout = 150000,
+                    //WriteTimeout = 150000,
+
                 };
                 //_serialPort = new SerialPort(
                 //    "COM3",
@@ -74,40 +80,79 @@ namespace ITravel_App.Services.POSService
                 return _serialPort.IsOpen;
             }
 
-            public async Task<string> ConnectionTestAsync()
-            {
-                string xml =
-                    @"<CONNTOPOS><ConnTest>800</ConnTest></CONNTOPOS>";
+            //public async Task<string> ConnectionTestAsync()
+            //{
+            //    //string xml =
+            //    //    @"<CONNTOPOS><ConnTest>800</ConnTest></CONNTOPOS>";
+            //    string xml =
+            //      @"<TOPOS><TrxType>00</TrxType><Amount>1000</Amount></TOPOS>";
+            //    return await SendAsync(xml);
+            //}
 
-                return await SendAsync(xml);
-            }
 
-            public async Task<string> SendAsync(string xml)
+            public async Task<string> SendAsync(string xml, string expectedClosingTag)
             {
                 await _lock.WaitAsync();
 
                 try
                 {
-                    if (!_serialPort.IsOpen)
+                    // Open port if needed
+                    if (_serialPort == null || !_serialPort.IsOpen)
+                    {
                         OpenPort();
+                    }
 
+                    // Clear previous communication
                     _serialPort.DiscardInBuffer();
                     _serialPort.DiscardOutBuffer();
 
-                    _logger.LogInformation(
-                        "Sending XML To POS: {Xml}",
-                        xml);
+                    _logger.LogInformation("========== POS REQUEST ==========");
+                    _logger.LogInformation(xml);
 
-                   // _serialPort.Write(xml);
-                    _serialPort.Write(xml + "\r\n");
+                    // If the bank later confirms CRLF is required,
+                    // replace Write() with:
+                    // _serialPort.Write(xml + "\r\n");
+                    _serialPort.Write(xml);
 
-                    var response = await ReadResponseAsync();
+                    var response = await ReadResponseAsync(expectedClosingTag);
 
-                    _logger.LogInformation(
-                        "Response From POS: {Response}",
-                        response);
+                    _logger.LogInformation("========== POS RESPONSE ==========");
+                    _logger.LogInformation(response);
+
+                    if (string.IsNullOrWhiteSpace(response))
+                    {
+                        throw new TimeoutException("POS returned an empty response.");
+                    }
 
                     return response;
+                }
+                catch (TimeoutException)
+                {
+                    _logger.LogError("Timeout waiting for POS response.");
+
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error communicating with POS.");
+
+                    // Try reopening the port if it was disconnected
+                    try
+                    {
+                        if (_serialPort != null)
+                        {
+                            if (_serialPort.IsOpen)
+                                _serialPort.Close();
+
+                            OpenPort();
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore reconnect errors and rethrow original exception
+                    }
+
+                    throw;
                 }
                 finally
                 {
@@ -115,46 +160,52 @@ namespace ITravel_App.Services.POSService
                 }
             }
 
-            private async Task<string> ReadResponseAsync()
+            private async Task<string> ReadResponseAsync(string expectedClosingTag)
             {
-                var sb = new StringBuilder();
+                var responseBuilder = new StringBuilder();
+                var stopwatch = Stopwatch.StartNew();
 
-                var startTime = DateTime.UtcNow;
-
-                while ((DateTime.UtcNow - startTime).TotalSeconds < 120)
+                while (stopwatch.Elapsed < TimeSpan.FromSeconds(120))
                 {
                     try
                     {
-                        string data = _serialPort.ReadExisting();
+                        string chunk = _serialPort.ReadExisting();
 
-                        if (!string.IsNullOrWhiteSpace(data))
+                        if (!string.IsNullOrEmpty(chunk))
                         {
-                            sb.Append(data);
+                            _logger.LogInformation("POS Received Chunk: {Chunk}", chunk);
 
-                            string response = sb.ToString();
+                            responseBuilder.Append(chunk);
 
-                            if (response.Contains("</CONNFROMPOS>"))
+                            string response = responseBuilder.ToString();
+
+                            if (response.Contains(expectedClosingTag, StringComparison.OrdinalIgnoreCase))
+                            {
                                 return response;
-
-                            if (response.Contains("</SALE_RESPONSE>"))
-                                return response;
-
-                            if (response.Contains("</PAYMENT_RESPONSE>"))
-                                return response;
-
-                            if (response.Contains("</RESPONSE>"))
-                                return response;
+                            }
                         }
                     }
-                    catch
+                    catch (TimeoutException)
                     {
+                        // Ignore and continue waiting
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error reading data from POS.");
+                        throw;
                     }
 
-                    await Task.Delay(250);
+                    await Task.Delay(100);
                 }
 
+                string partialResponse = responseBuilder.ToString();
+
+                _logger.LogWarning(
+                    "POS response timeout. Partial response: {Response}",
+                    partialResponse);
+
                 throw new TimeoutException(
-                    "Timeout waiting for POS response.");
+                    $"Timeout waiting for POS response. Partial response: {partialResponse}");
             }
 
             public void Dispose()
@@ -171,6 +222,129 @@ namespace ITravel_App.Services.POSService
                 catch
                 {
                 }
+            }
+
+            public async Task<PosPaymentResponse> ProcessPaymentAsync(PosPaymentRequest request)
+            {
+                try
+                {
+                    // ===========================
+                    // Step 1 - Connection Test
+                    // ===========================
+
+                    const string connectionXml =@"<CONNTOPOS><ConnTest>800</ConnTest></CONNTOPOS>";
+
+                    var connectionResponse = await SendAsync(
+                        connectionXml,
+                        "</CONNFROMPOS>");
+
+                    if (string.IsNullOrWhiteSpace(connectionResponse))
+                    {
+                        return new PosPaymentResponse
+                        {
+                            Success = false,
+                            Message = "Connection test failed. No response received from POS."
+                        };
+                    }
+
+                    if (!connectionResponse.Contains("<CONNFROMPOS>"))
+                    {
+                        return new PosPaymentResponse
+                        {
+                            Success = false,
+                            Message = "Invalid connection response received from POS.",
+                            RawResponse = connectionResponse
+                        };
+                    }
+
+                    // ===========================
+                    // Step 2 - Build Payment XML
+                    // ===========================
+
+                    string amount = FormatAmount(request.Amount);
+
+                    string paymentXml =
+                            $@"<TOPOS><TrxType>{request.TrxType ?? ""}</TrxType><Amount>{amount}</Amount><RefNum>{request.RefNum ?? ""}</RefNum><RcptNum>{request.ReceiptNum ?? ""}</RcptNum></TOPOS>";
+
+                    // ===========================
+                    // Step 3 - Send Payment
+                    // ===========================
+
+                    var paymentResponse = await SendAsync(
+                        paymentXml,
+                        "</FROMPOS>");
+
+                    if (string.IsNullOrWhiteSpace(paymentResponse))
+                    {
+                        return new PosPaymentResponse
+                        {
+                            Success = false,
+                            Message = "Timeout waiting for POS payment response."
+                        };
+                    }
+
+                    // ===========================
+                    // Step 4 - Parse XML
+                    // ===========================
+
+                    var receipt = ParseReceipt(paymentResponse);
+
+                    if (receipt == null)
+                    {
+                        return new PosPaymentResponse
+                        {
+                            Success = false,
+                            Message = "Unable to parse POS response.",
+                            RawResponse = paymentResponse
+                        };
+                    }
+
+                    // ===========================
+                    // Step 5 - Check Result
+                    // ===========================
+
+                    bool approved = receipt.ResponseCode == "00";
+
+                    return new PosPaymentResponse
+                    {
+                        Success = approved,
+                        Message = approved
+                            ? receipt.TransactionStatus ?? "Approved"
+                            : receipt.TransactionStatus ?? "Payment Declined",
+
+                        Receipt = receipt,
+                        RawResponse = paymentResponse
+                    };
+                }
+                catch (TimeoutException)
+                {
+                    return new PosPaymentResponse
+                    {
+                        Success = false,
+                        Message = "Timeout waiting for POS response."
+                    };
+                }
+                catch (Exception ex)
+                {
+                    return new PosPaymentResponse
+                    {
+                        Success = false,
+                        Message = ex.Message
+                    };
+                }
+            }
+            private static string FormatAmount(decimal amount)
+            {
+                return Math.Round(amount * 100, 0, MidpointRounding.AwayFromZero)
+                           .ToString("0");
+            }
+            private PosReceipt ParseReceipt(string xml)
+            {
+                var serializer = new XmlSerializer(typeof(PosReceipt));
+
+                using var reader = new StringReader(xml);
+
+                return (PosReceipt)serializer.Deserialize(reader)!;
             }
         }
     }

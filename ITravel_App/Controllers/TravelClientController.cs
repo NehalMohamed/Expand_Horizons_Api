@@ -25,7 +25,22 @@ namespace ITravel_App.Controllers
         }
 
         #region destination
-
+        /// <summary>
+        /// get destination with trip types.
+        /// </summary>
+        /// <returns>Destination List .</returns>
+        /// /// <remarks>
+        /// Sample request:
+        ///
+        ///  /api/TravelClient/GetDestinationsWithTypes
+        ///
+        /// </remarks>
+        /// <response code="200">Success response.</response>
+        [HttpPost("GetDestinationsWithTypes")]
+        public IActionResult GetDestinationsWithTypes([FromQuery] string lang)
+        {
+            return Ok(_clientService.GetDestinationsWithTypes(lang));
+        }
 
         /// <summary>
         /// get destination tree.
@@ -251,7 +266,7 @@ namespace ITravel_App.Controllers
         {
             return Ok(_clientService.GetTransferCategoryAll());
         }
-        #endregion 
+        #endregion
 
     }
 }

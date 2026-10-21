@@ -30,6 +30,56 @@ namespace ITravelApp.Data
             _urls = options.Value;
         }
         #region destination
+        //get destinations with trip types
+        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang)
+        {
+            try
+            {
+                var records =  _db.destinationwithtriptypes.Where(wr => wr.lang_code!.ToLower() == lang.ToLower() && wr.parent_id == 0 && wr.active == true).ToList();
+                              
+                   return records.GroupBy(grp => new
+                              {
+                                  grp.destination_id,
+                                  grp.dest_code,
+                                  grp.dest_default_name,
+                                  grp.active,
+                                  grp.dest_description,
+                                  grp.lang_code,
+                                  grp.country_code,
+                                  grp.id,
+                                  grp.dest_name
+
+                              }).Select(s => new DestinationWithTypes
+                              {
+                                  lang_code = s.Key.lang_code,
+                                  active = s.Key.active,
+                                  country_code = s.Key.country_code,
+                                  destination_id = s.Key.destination_id,
+                                  dest_code = s.Key.dest_code,
+                                  dest_default_name = s.Key.dest_default_name,
+                                  dest_description =    s.Key.dest_description,
+                                  dest_name = s.Key.dest_name,
+                                  id = s.Key.id,
+                                  TripTypes = records.Where(wr => wr.destination_id == s.Key.destination_id &&
+                                     wr.triptypeid.HasValue).Select(c => new TripTypesAll
+                                     {
+                                         id = c.triptypeid ?? 0,
+                                         type_code = c.type_code ?? string.Empty,
+                                         type_name = c.type_name ?? string.Empty,
+                                         trip_category_id = c.tripcategoryid ?? 0
+                                     }).ToList()
+                              }).ToList();
+                             
+                //return records;
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+
+        }
 
         //get destinations for specific parent (destination parent)
         public async Task<List<destinationwithdetail>> getDestinations(DestinationReq req)
@@ -332,6 +382,7 @@ namespace ITravelApp.Data
                 var trips = await _db.tripwithdetails
                     .Where(wr => wr.lang_code.ToLower() == req.lang_code.ToLower() &&
                                  wr.trip_type == (req.trip_type == 0 ? wr.trip_type : req.trip_type) &&
+                                  wr.trip_category == (req.trip_category == 0 ? wr.trip_category : req.trip_category) &&
                                  wr.show_in_top == (req.show_in_top == false ? wr.show_in_top : req.show_in_top) &&
                                  wr.destination_id == (req.destination_id == 0 ? wr.destination_id : req.destination_id) &&
                                  //wr.currency_code.ToLower() == req.currency_code.ToLower() &&
@@ -470,6 +521,7 @@ namespace ITravelApp.Data
                     imgs = GetImgsByTrip(s.trip_id).Result,
                     trip_category_code = s.trip_category_code,
                     trip_category_name = s.trip_category_name,
+                   trip_type_name=s.trip_type_name,
                     trip_code_auto = s.trip_code_auto,
                     cancelation_policy = s.cancelation_policy,
                     release_days = s.release_days,
@@ -542,6 +594,7 @@ namespace ITravelApp.Data
                 trip_not_includes = s.trip_not_includes,
                 trip_category_name = s.trip_category_name,
                 trip_category_code = s.trip_category_code,
+                trip_type_name=s.trip_type_name,
                 trip_code_auto = s.trip_code_auto,
                 cancelation_policy = s.cancelation_policy,
                 release_days = s.release_days,
@@ -566,6 +619,7 @@ namespace ITravelApp.Data
                     .Max(m => m.age_to),
                 trip_order = s.trip_order,
                 is_comm_soon = s.is_comm_soon,
+                trip_category = s.trip_category,
                 // child_lst = GetChild_Prices(currency_code ,s.trip_id, trip_max_price)
             };
         }
@@ -889,6 +943,31 @@ namespace ITravelApp.Data
                 if (booking != null)
                 {
                     booking.booking_status = 3;
+                    _db.trips_bookings.Update(booking);
+                    await _db.SaveChangesAsync();
+                    response = new ResponseCls { errors = null, msg = "", success = true };
+                }
+            }
+            catch (Exception ex)
+            {
+                response = new ResponseCls { errors = null, msg = "", success = true };
+            }
+            return response;
+        }
+
+
+        //used to update booking for specific user to be payed
+        //status of payed = 4
+        public async Task<ResponseCls> PayBooking(long? booking_id, string? client_id)
+        {
+            ResponseCls response = new();
+            try
+            {
+                var booking = await _db.trips_bookings.Where(wr => wr.id == booking_id && wr.client_id == client_id).SingleOrDefaultAsync();
+                //var booking = await _db.trips_bookings.FirstOrDefaultAsync(wr => wr.id == booking_id && wr.client_id == client_id);
+                if (booking != null)
+                {
+                    booking.booking_status = 4;
                     _db.trips_bookings.Update(booking);
                     await _db.SaveChangesAsync();
                     response = new ResponseCls { errors = null, msg = "", success = true };
@@ -1843,5 +1922,36 @@ namespace ITravelApp.Data
         }
         #endregion
 
+        #region "POS"
+        public decimal ConvertCurrency(decimal amount, string toCurr)
+        {
+            if (amount <= 0 || string.IsNullOrWhiteSpace(toCurr))
+                return 0;
+
+            try
+            {
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var currency = toCurr.Trim().ToUpper();
+
+                var rate = _db.exchange_rates
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.currency_code == currency &&
+                        x.effective_date <= today)
+                    .OrderByDescending(x => x.effective_date)
+                    .Select(x => (decimal?)x.rate)
+                    .FirstOrDefault();
+
+                if (!rate.HasValue)
+                    return 0;
+
+                return Math.Round(amount * rate.Value, 2);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+        #endregion
     }
 }

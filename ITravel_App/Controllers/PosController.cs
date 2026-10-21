@@ -1,4 +1,5 @@
-﻿using ITravel_App.Services.POSService;
+﻿using ITravel_App.Models.POS;
+using ITravel_App.Services.POSService;
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
 
@@ -76,63 +77,76 @@ namespace ITravel_App.Controllers
 
             return Ok(results);
         }
-        [HttpGet("status")]
-        public IActionResult Status()
+        //[HttpGet("status")]
+        //public IActionResult Status()
+        //{
+        //    return Ok(new
+        //    {
+        //        Connected = _posService.IsConnected()
+        //    });
+        //}
+
+        //[HttpGet("test")]
+        //public async Task<IActionResult> ConnectionTest()
+        //{
+        //    try
+        //    {
+        //        var response =
+        //            await _posService.ConnectionTestAsync();
+
+        //        return Ok(new
+        //        {
+        //            Success = true,
+        //            Response = response
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            Success = false,
+        //            Message = ex.Message
+        //        });
+        //    }
+        //}
+
+        //[HttpPost("send")]
+        //public async Task<IActionResult> SendXml(
+        //    [FromBody] PosXmlRequest request)
+        //{
+        //    try
+        //    {
+        //        var response =
+        //            await _posService.SendAsync(
+        //                request.Xml);
+
+        //        return Ok(new
+        //        {
+        //            Success = true,
+        //            Response = response
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            Success = false,
+        //            Message = ex.Message
+        //        });
+        //    }
+        //}
+
+        [HttpPost("payment")]
+        public async Task<IActionResult> Payment(
+        PosPaymentRequest request)
         {
-            return Ok(new
-            {
-                Connected = _posService.IsConnected()
-            });
-        }
+            var result =
+                await _posService.ProcessPaymentAsync(request);
 
-        [HttpGet("test")]
-        public async Task<IActionResult> ConnectionTest()
-        {
-            try
-            {
-                var response =
-                    await _posService.ConnectionTestAsync();
+            if (!result.Success)
+                return BadRequest(result);
 
-                return Ok(new
-                {
-                    Success = true,
-                    Response = response
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
-            }
-        }
-
-        [HttpPost("send")]
-        public async Task<IActionResult> SendXml(
-            [FromBody] PosXmlRequest request)
-        {
-            try
-            {
-                var response =
-                    await _posService.SendAsync(
-                        request.Xml);
-
-                return Ok(new
-                {
-                    Success = true,
-                    Response = response
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
-            }
+            return Ok(result);
         }
     }
 

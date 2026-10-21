@@ -66,4 +66,8 @@ public partial class tripwithdetail
     public int? trip_order { get; set; }
 
     public bool? is_comm_soon { get; set; }
+
+    public string? trip_type_name { get; set; }
+
+    public int? trip_category { get; set; }
 }

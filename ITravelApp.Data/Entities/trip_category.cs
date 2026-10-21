@@ -7,7 +7,7 @@ public partial class trip_category
 {
     public int id { get; set; }
 
-    public string? type_name { get; set; }
+    public string? category_name { get; set; }
 
-    public string? type_code { get; set; }
+    public string? category_code { get; set; }
 }

@@ -42,4 +42,6 @@ public partial class trip_main
     public int? trip_order { get; set; }
 
     public bool? is_comm_soon { get; set; }
+
+    public int? trip_cat { get; set; }
 }

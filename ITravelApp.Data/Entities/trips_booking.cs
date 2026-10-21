@@ -27,6 +27,7 @@ public partial class trips_booking
     /// 1 = requested
     /// 2 = confirmed
     /// 3 = canceled
+    /// 4 = payed
     /// </summary>
     public int? booking_status { get; set; }
 

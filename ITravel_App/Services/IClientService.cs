@@ -15,6 +15,7 @@ namespace ITravel_App.Services
     public interface IClientService
     {
         #region destination
+        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang);
         public Task<List<destinationwithdetail>> getDestinations(DestinationReq req);
         public List<DestinationTree> GetDestination_Tree(DestinationReq req);
         #endregion
@@ -63,6 +64,11 @@ namespace ITravel_App.Services
 
         #region "transfer"
         public List<TransferCategoryAll> GetTransferCategoryAll();
+        #endregion
+
+        #region "POS"
+        public decimal ConvertCurrency(decimal amount, string toCurr);
+        public  Task<ResponseCls> PayBooking(long? booking_id, string? client_id);
         #endregion
     }
 }
