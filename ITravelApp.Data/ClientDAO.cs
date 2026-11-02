@@ -31,11 +31,14 @@ namespace ITravelApp.Data
         }
         #region destination
         //get destinations with trip types
-        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang)
+        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang,int categoryId)
         {
             try
             {
-                var records =  _db.destinationwithtriptypes.Where(wr => wr.lang_code!.ToLower() == lang.ToLower() && wr.parent_id == 0 && wr.active == true).ToList();
+                var records =  _db.destinationwithtriptypes.Where(wr => wr.lang_code!.ToLower() == lang.ToLower() && 
+                                                    wr.parent_id == 0 &&
+                                                    (wr.tripcategoryid == null || wr.tripcategoryid == 0 || wr.tripcategoryid == categoryId) &&
+                                                    wr.active == true).ToList();
                               
                    return records.GroupBy(grp => new
                               {
@@ -47,7 +50,8 @@ namespace ITravelApp.Data
                                   grp.lang_code,
                                   grp.country_code,
                                   grp.id,
-                                  grp.dest_name
+                                  grp.dest_name,
+                                  grp.route
 
                               }).Select(s => new DestinationWithTypes
                               {
@@ -60,6 +64,7 @@ namespace ITravelApp.Data
                                   dest_description =    s.Key.dest_description,
                                   dest_name = s.Key.dest_name,
                                   id = s.Key.id,
+                                  route=s.Key.route,
                                   TripTypes = records.Where(wr => wr.destination_id == s.Key.destination_id &&
                                      wr.triptypeid.HasValue).Select(c => new TripTypesAll
                                      {
@@ -277,11 +282,14 @@ namespace ITravelApp.Data
                   .OrderBy(x => x.order)
                 .ToList();
         }
-      
+
         #endregion
 
         #region trips
-
+        public async Task<List<trip_type>> GetTripTypes()
+        {
+            return await _db.trip_types.ToListAsync();
+        }
         //get main categories for trip
         public async Task<List<trip_category>> GetTripCategories()
         {
@@ -373,6 +381,28 @@ namespace ITravelApp.Data
             }
         }
 
+
+        //Get Top Trip Only
+
+        public async Task<List<TripsAll>> GetTopTrips(TopTripReq req)
+        {
+            try
+            {
+                var trips = await _db.tripwithdetails
+                    .Where(wr => wr.lang_code.ToLower() == req.lang_code.ToLower() &&
+                                 wr.show_in_top == true) 
+                                  
+                    .OrderBy(o => o.trip_order)
+                    .ToListAsync();
+                return trips.Select(s => MapToTripsAll(s, req.currency_code, req.client_id)).ToList();
+
+            }
+            catch (Exception ex)
+            {
+                return new List<TripsAll>();
+            }
+        }
+
         //get trips and top trips with its details 
 
         public async Task<List<TripsAll>> GetTripsAll(TripsReq req)
@@ -381,19 +411,37 @@ namespace ITravelApp.Data
             {
                 var trips = await _db.tripwithdetails
                     .Where(wr => wr.lang_code.ToLower() == req.lang_code.ToLower() &&
-                                 wr.trip_type == (req.trip_type == 0 ? wr.trip_type : req.trip_type) &&
+                                // wr.trip_type == (req.trip_type == 0 ? wr.trip_type : req.trip_type) &&
                                   wr.trip_category == (req.trip_category == 0 ? wr.trip_category : req.trip_category) &&
-                                 wr.show_in_top == (req.show_in_top == false ? wr.show_in_top : req.show_in_top) &&
-                                 wr.destination_id == (req.destination_id == 0 ? wr.destination_id : req.destination_id) &&
-                                 //wr.currency_code.ToLower() == req.currency_code.ToLower() &&
+                                    wr.show_in_top == (req.show_in_top == false ? wr.show_in_top : req.show_in_top) &&
+                                     (req.trip_types == null ||
+                                         req.trip_types.Count == 0 ||
+                                         req.trip_types.Contains(wr.trip_type)) &&
+                                        (req.destination_lst == null ||
+                                         req.destination_lst.Count == 0 ||
+                                         req.destination_lst.Contains(wr.destination_id)) &&
+                                 // wr.destination_id == (req.destination_id == 0 ? wr.destination_id : req.destination_id) &&
+                                 // wr.currency_code.ToLower() == req.currency_code.ToLower() &&
                                  //(string.IsNullOrEmpty(wr.currency_code) || wr.currency_code.ToLower() == req.currency_code.ToLower()) &&
                                  //(string.IsNullOrEmpty(wr.transfer_currency) || wr.transfer_currency.ToLower() == req.currency_code.ToLower()) &&
                                  wr.show_in_slider == (req.show_in_slider == false ? wr.show_in_slider : req.show_in_slider))
                     .OrderBy(o => o.trip_order)
                     .ToListAsync();
 
-                return trips.Select(s => MapToTripsAll(s, req.currency_code, req.client_id)).ToList();
-                
+                //return trips.Select(s => MapToTripsAll(s, req.currency_code, req.client_id))
+                //            .Where(wr => wr.trip_min_price >= req.min_price && wr.trip_min_price <= req.max_price)
+                //    .ToList();
+
+                var result = trips
+    .Select(s => MapToTripsAll(s, req.currency_code, req.client_id));
+
+                if (req.max_price.HasValue && req.max_price.Value > 0)
+                {
+                    result = result.Where(wr =>
+                        wr.trip_min_price >= req.min_price &&
+                        wr.trip_min_price <= req.max_price.Value);
+                }
+                return  result.ToList();;
             }
             catch (Exception ex)
             {

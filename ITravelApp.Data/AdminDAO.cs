@@ -7,6 +7,7 @@ using ITravelApp.Data.Models.global;
 using ITravelApp.Data.Models.Transfer;
 using ITravelApp.Data.Models.trips;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System;
@@ -377,6 +378,104 @@ namespace ITravelApp.Data
         //}
         #endregion
         #region destination
+        //get trip types assigned to specific destination & category 
+
+        public List<DestinationTypesDto> GetTripTypesByDestination(int destinationId, int CategoryId)
+        {
+            try
+            {
+                var records = _db.trip_types
+                                .GroupJoin(
+                                    _db.DestinationTripTypes
+                                        .Where(d => d.DestinationId == destinationId
+                                                 && d.IsActive
+                                                 && d.TripCategoryId == CategoryId),
+                                    typ => typ.id,
+                                    dest => dest.TripTypeId,
+                                    (typ, dests) => new { typ, dests }
+                        )
+                        .SelectMany(
+                            x => x.dests.DefaultIfEmpty(),
+                            (x, dest) => new DestinationTypesDto
+                            {
+                                TripTypeId = x.typ.id,
+                                TripCategoryId = dest != null ? dest.TripCategoryId : CategoryId,
+                        DestinationId = dest != null ? dest.DestinationId : destinationId,
+                        DisplayOrder = dest != null ? dest.DisplayOrder : 0,
+                        Id = dest != null ? dest.Id : 0,
+                        IsActive = dest != null && dest.IsActive,
+                        type_code = x.typ.type_code,
+                        type_name = x.typ.type_name,
+                    isChecked = dest != null
+                }
+            )
+            .ToList();
+
+              
+                                   
+                return records;
+            }
+            catch (Exception ex) {
+                return null;
+            }
+        }
+        
+
+        
+        //save destination types & categories data by admin
+        public ResponseCls SaveDestinationTypes(DestinationTypesDto row)
+        {
+            ResponseCls response;
+            int maxId = 0;
+            var msg = _localizer["DuplicateData"];
+            try
+            {
+                if (row.Id == 0)
+                {
+                   
+                    //check duplicate validation
+                    var result = _db.DestinationTripTypes.Where(wr => wr.DestinationId == row.DestinationId && wr.TripCategoryId == row.TripCategoryId && wr.TripTypeId == row.TripTypeId).SingleOrDefault();
+                    if (result != null)
+                    {
+                        return new ResponseCls { success = false, errors = _localizer["DuplicateData"] };
+                    }
+                    if (_db.destinationwithtriptypes.Count() > 0)
+                    {
+                        maxId = _db.DestinationTripTypes.Max(d => d.Id);
+
+                    }
+                    row.Id = maxId + 1;
+                    row.DisplayOrder = _db.DestinationTripTypes.Max(d => d.DisplayOrder) + 1;
+                    _db.DestinationTripTypes.Add(row);
+                    _db.SaveChanges();
+                }
+                else
+                {
+                    if (row.isChecked == false)
+                    {
+                        _db.Remove(row);
+                        _db.SaveChanges();
+                        return new ResponseCls { errors = null, success = true };
+                    }
+                    //check duplicate order (in update row)
+                    //if (_db.destination_mains.Where(wr => wr.order == row.order && wr.active == row.active && wr.id != row.id && wr.parent_id == row.parent_id).SingleOrDefault() != null)
+                    //{
+                    //    return new ResponseCls { success = false, errors = _localizer["DuplicateOrder"] };
+                    //}
+                    
+                    _db.DestinationTripTypes.Update(row);
+                    _db.SaveChanges();
+                }
+
+                response = new ResponseCls { errors = null, success = true, idOut = row.Id };
+            }
+            catch (Exception ex)
+            {
+                response = new ResponseCls { errors = _localizer["CheckAdmin"], success = false, idOut = 0 };
+            }
+
+            return response;
+        }
 
         //save main destination data by admin
         public ResponseCls SaveMainDestination(destination_main row)
@@ -653,7 +752,7 @@ namespace ITravelApp.Data
 
         public async Task<List<destination_main>> GetDestination_Mains(bool leaf)
         {
-            return await _db.destination_mains.Where(wr => wr.active == true && wr.leaf == (leaf == false ? wr.leaf : leaf)).ToListAsync();
+            return await _db.destination_mains.Where(wr => wr.active == true && wr.leaf ==  leaf).ToListAsync();
         }
 
         //use to set destination image is default , and first should check if there is another image with same destination id is default or not
@@ -713,6 +812,11 @@ namespace ITravelApp.Data
 
 
         #region trips
+
+        public async Task<List<trip_type>> GetTripTypes()
+        {
+            return await _db.trip_types.ToListAsync();
+        }
         public async Task<List<trip_category>> GetTripCategories()
         {
             return await _db.trip_categories.ToListAsync();
@@ -1576,11 +1680,11 @@ namespace ITravelApp.Data
             return response;
         }
 
-        public async Task<List<TripMainCast>> GetTrip_Mains(int destination_id, int trip_type)
+        public async Task<List<TripMainCast>> GetTrip_Mains(int destination_id, int trip_category)
         {
             try
             {
-                return await _db.trip_mains.Where(wr => wr.destination_id == (destination_id == 0 ? wr.destination_id : destination_id) && wr.trip_type == (trip_type == 0 ? wr.trip_type : trip_type))
+                return await _db.trip_mains.Where(wr => wr.destination_id == (destination_id == 0 ? wr.destination_id : destination_id) && wr.trip_cat == (trip_category == 0 ? wr.trip_cat : trip_category))
                       .Join(_db.destination_mains,
                               TRIP => new { TRIP.destination_id },
                               DEST => new { destination_id = (int?)DEST.id },
@@ -1600,6 +1704,7 @@ namespace ITravelApp.Data
                                   dest_code = DEST.dest_code,
                                   dest_default_name = DEST.dest_default_name,
                                   trip_type = TRIP.trip_type,
+                                  trip_cat=TRIP.trip_cat,
                                   transfer_category_id = TRIP.transfer_category_id,
                                   trip_code_auto = TRIP.trip_code_auto,
                                   release_days = TRIP.release_days,

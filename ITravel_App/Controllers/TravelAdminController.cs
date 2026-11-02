@@ -1,4 +1,6 @@
-﻿using ITravel_App.Services;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using DocumentFormat.OpenXml.Wordprocessing;
+using ITravel_App.Services;
 using ITravelApp.Data.Entities;
 using ITravelApp.Data.Models.Bookings.Admin;
 using ITravelApp.Data.Models.destination;
@@ -127,6 +129,19 @@ namespace ITravel_App.Controllers
 
         #endregion
         #region destination
+        [HttpPost("SaveDestinationTypes")]
+        public IActionResult SaveDestinationTypes(DestinationTypesDto row)
+        {
+        
+            return Ok(_adminService.SaveDestinationTypes(row));
+        }
+
+        [HttpPost("GetTripTypesByDestination")]
+        public IActionResult GetTripTypesByDestination([FromQuery] int destinationId , [FromQuery] int CategoryId )
+        {
+
+            return Ok(_adminService.GetTripTypesByDestination(destinationId , CategoryId));
+        }
         /// <summary>
         /// Get parent or child destination list depend on parameter
         /// </summary>
@@ -296,6 +311,12 @@ namespace ITravel_App.Controllers
         }
         #endregion
         #region trips
+        [HttpPost("GetTripTypes")]
+        public async Task<IActionResult> GetTripTypes()
+        {
+
+            return Ok(await _adminService.GetTripTypes());
+        }
 
         /// <summary>
         /// Get trip's categories

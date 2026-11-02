@@ -92,9 +92,9 @@ namespace ITravel_App.Services
             return await _clientDAO.getDestinations(req);
         }
 
-        public List<DestinationWithTypes> GetDestinationsWithTypes(string lang)
+        public List<DestinationWithTypes> GetDestinationsWithTypes(string lang,int categoryId)
         {
-            return  _clientDAO.GetDestinationsWithTypes(lang);
+            return  _clientDAO.GetDestinationsWithTypes(lang, categoryId);
         }
 
         public List<DestinationTree> GetDestination_Tree(DestinationReq req)
@@ -127,6 +127,11 @@ namespace ITravel_App.Services
             return _clientDAO.GetProfileImage(clientId);
         }
 
+        public Task<List<TripsAll>> GetTopTrips(TopTripReq req)
+        {
+            return _clientDAO.GetTopTrips(req);
+        }
+
         public List<TransferCategoryAll> GetTransferCategoryAll()
         {
             return _clientDAO.GetTransferCategoryAll();
@@ -150,6 +155,11 @@ namespace ITravel_App.Services
         public Task<List<tripwithdetail>> GetTripsForSlider(TripsReq req)
         {
             return _clientDAO.GetTripsForSlider(req);
+        }
+
+        public Task<List<trip_type>> GetTripTypes()
+        {
+            return _clientDAO.GetTripTypes();
         }
 
         public List<TripFacility> GetTrip_Extra_Mains(TripExtraReq req)

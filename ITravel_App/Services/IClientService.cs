@@ -15,12 +15,14 @@ namespace ITravel_App.Services
     public interface IClientService
     {
         #region destination
-        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang);
+        public  List<DestinationWithTypes> GetDestinationsWithTypes(string lang,int categoryId);
         public Task<List<destinationwithdetail>> getDestinations(DestinationReq req);
         public List<DestinationTree> GetDestination_Tree(DestinationReq req);
         #endregion
 
         #region trips
+        public  Task<List<TripsAll>> GetTopTrips(TopTripReq req);
+        public  Task<List<trip_type>> GetTripTypes();
         public Task<List<trip_category>> GetTripCategories();
         public Task<TripsAll> GetTripDetails(TripDetailsReq req);
         public Task<List<TripsAll>> GetTripsAll(TripsReq req);

@@ -37,9 +37,9 @@ namespace ITravel_App.Controllers
         /// </remarks>
         /// <response code="200">Success response.</response>
         [HttpPost("GetDestinationsWithTypes")]
-        public IActionResult GetDestinationsWithTypes([FromQuery] string lang)
+        public IActionResult GetDestinationsWithTypes([FromQuery] string lang, [FromQuery] int categoryId)
         {
-            return Ok(_clientService.GetDestinationsWithTypes(lang));
+            return Ok(_clientService.GetDestinationsWithTypes(lang, categoryId));
         }
 
         /// <summary>
@@ -78,7 +78,11 @@ namespace ITravel_App.Controllers
         }
         #endregion
         #region trips
-
+        [HttpPost("GetTripTypes")]
+        public async Task<IActionResult> GetTripTypes()
+        {
+            return Ok(await _clientService.GetTripTypes());
+        }
         /// <summary>
         /// get main categories for trips
         /// </summary>
@@ -134,7 +138,12 @@ namespace ITravel_App.Controllers
             return Ok(await _clientService.GetTripsAll(req));
         }
 
+        [HttpPost("GetTopTrips")]
+        public async Task<IActionResult> GetTopTrips(TopTripReq req)
+        {
 
+            return Ok(await _clientService.GetTopTrips(req));
+        }
         /// <summary>
         /// get trips which shown in home page slider 
         /// </summary>

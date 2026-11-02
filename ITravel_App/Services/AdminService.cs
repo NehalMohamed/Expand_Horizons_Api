@@ -210,5 +210,20 @@ namespace ITravel_App.Services
         {
             return _adminDAO.UpdateTransferImage(cls);  
         }
+
+        public ResponseCls SaveDestinationTypes(DestinationTypesDto row)
+        {
+            return _adminDAO.SaveDestinationTypes(row);
+        }
+
+        public List<DestinationTypesDto> GetTripTypesByDestination(int destinationId, int CategoryId)
+        {
+            return _adminDAO.GetTripTypesByDestination(destinationId, CategoryId);
+        }
+
+        public Task<List<trip_type>> GetTripTypes()
+        {
+            return _adminDAO.GetTripTypes();
+        }
     }
 }

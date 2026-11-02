@@ -19,6 +19,8 @@ namespace ITravel_App.Services
         public Task<CompanySettingCls> Get_CompanySetting(long company_id);
         public ResponseCls SaveExchangeRate(List<exchange_rate> rows);
         #endregion
+        public ResponseCls SaveDestinationTypes(DestinationTypesDto row);
+        public List<DestinationTypesDto> GetTripTypesByDestination(int destinationId, int CategoryId);
         public ResponseCls SaveMainDestination(destination_main row);
         public ResponseCls SaveDestinationTranslations(destination_translation row);
         public ResponseCls saveDestinationImage(List<destination_img> row);
@@ -26,10 +28,11 @@ namespace ITravel_App.Services
         public Task<List<destination_img>> GetImgsByDestination(int? destination_id);
         public Task<List<destination_main>> GetDestination_Mains(bool leaf);
         public ResponseCls UpdateDestinationImage(DestinationImgUpdateReq cls);
-      
+
 
 
         #region trips
+        public  Task<List<trip_type>> GetTripTypes();
         public Task<List<child_policy_setting>> GetTrip_ChildPolicy(long? trip_id);
         public ResponseCls SaveTripChildPolicy(ChildPolicyPricesReq row);
         public Task<List<trip_category>> GetTripCategories();
